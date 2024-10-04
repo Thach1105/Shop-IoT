@@ -21,6 +21,10 @@ public enum ErrorApp {
 
     UNAUTHENTICATION(ErrorCode.ERROR_AUTHENTICATION.getCode(), "Unauthentication", HttpStatus.UNAUTHORIZED),
     TOKEN_INVALID(ErrorCode.ERROR_AUTHENTICATION.getCode(), "Token invalid", HttpStatus.UNAUTHORIZED),
+
+    BRAND_EXISTED(ErrorCode.ERROR_BRAND.getCode(), "Brand name existed", HttpStatus.BAD_REQUEST),
+    BRAND_NAME_NOT_EMPTY(ErrorCode.ERROR_BRAND.getCode(), "Brand name must be not empty", HttpStatus.BAD_REQUEST),
+    BRAND_NOTFOUND(ErrorCode.ERROR_BRAND.getCode(), "Could not found brand", HttpStatus.BAD_REQUEST),
     ;
 
     private String message;

@@ -22,10 +22,10 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
     @PostMapping
     public ResponseEntity<ApiResponse<?>> create(@Valid @RequestBody CreateUserRequest request){

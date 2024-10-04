@@ -79,7 +79,12 @@
 			<version>1.6.2</version>
 		</dependency>
 
-
+		<!-- https://mvnrepository.com/artifact/software.amazon.awssdk/s3 -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.28.14</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -21,7 +21,7 @@ import java.util.List;
 @Service
 public class UserService {
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserMapper userMapper;

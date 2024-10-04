@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 @Service
@@ -26,6 +27,7 @@ public class StorageService {
     @Autowired
     private S3Client s3Client;
 
+    // upload file to aws s3, if it is folder then folder name is "folder1/folder2"
     public String uploadFileToS3(MultipartFile multipartFile, String folderName){
        try {
            String s3Key = multipartFile.getOriginalFilename();
@@ -47,7 +49,7 @@ public class StorageService {
            inputStream.close();
 
             return "https://" + BUCKET_NAME + ".s3." + REGION + ".amazonaws.com/" + s3Key;
-       } catch (Exception e){
+       } catch (IOException e){
            log.error("Unable upload file to AWS S3");
        }
 

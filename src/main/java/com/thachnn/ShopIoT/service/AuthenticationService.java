@@ -44,13 +44,13 @@ public class AuthenticationService {
     protected long REFRESHABLE_DURATION;
 
     @Autowired
-    InvalidatedTokenRepository invalidatedTokenRepository;
+    private InvalidatedTokenRepository invalidatedTokenRepository;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     //login
     public AuthenticationResponse authenticate(LoginRequest request){
