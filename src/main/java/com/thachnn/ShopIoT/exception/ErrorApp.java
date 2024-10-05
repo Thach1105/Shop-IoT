@@ -25,6 +25,10 @@ public enum ErrorApp {
     BRAND_EXISTED(ErrorCode.ERROR_BRAND.getCode(), "Brand name existed", HttpStatus.BAD_REQUEST),
     BRAND_NAME_NOT_EMPTY(ErrorCode.ERROR_BRAND.getCode(), "Brand name must be not empty", HttpStatus.BAD_REQUEST),
     BRAND_NOTFOUND(ErrorCode.ERROR_BRAND.getCode(), "Could not found brand", HttpStatus.BAD_REQUEST),
+
+    CATEGORY_NAME_NOT_EMPTY(ErrorCode.ERROR_CATEGORY.getCode(), "Category name must be not empty", HttpStatus.BAD_REQUEST),
+    CATEGORY_NOT_FOUND(ErrorCode.ERROR_CATEGORY.getCode(), "Could not found category", HttpStatus.BAD_REQUEST),
+    CATEGORY_NAME_EXISTED(ErrorCode.ERROR_CATEGORY.getCode(), "Category name existed", HttpStatus.BAD_REQUEST)
     ;
 
     private String message;
