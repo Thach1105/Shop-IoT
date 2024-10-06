@@ -13,6 +13,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class StorageService {
@@ -41,9 +43,8 @@ public class StorageService {
            PutObjectRequest putOb = PutObjectRequest.builder()
                    .bucket(BUCKET_NAME)
                    .key(s3Key)
-                   .contentType(multipartFile.getOriginalFilename())
+                   .contentType(multipartFile.getContentType())
                    .build();
-
 
            s3Client.putObject(putOb, RequestBody.fromInputStream(inputStream, multipartFile.getSize()));
            inputStream.close();
@@ -52,7 +53,6 @@ public class StorageService {
        } catch (IOException e){
            log.error("Unable upload file to AWS S3");
        }
-
        return null;
     }
 
@@ -65,7 +65,6 @@ public class StorageService {
                 .build();
 
         s3Client.deleteObject(deleteOb);
-
         log.info("{} removed", fileName);
     }
 }
