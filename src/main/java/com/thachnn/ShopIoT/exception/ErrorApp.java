@@ -28,7 +28,13 @@ public enum ErrorApp {
 
     CATEGORY_NAME_NOT_EMPTY(ErrorCode.ERROR_CATEGORY.getCode(), "Category name must be not empty", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_FOUND(ErrorCode.ERROR_CATEGORY.getCode(), "Could not found category", HttpStatus.BAD_REQUEST),
-    CATEGORY_NAME_EXISTED(ErrorCode.ERROR_CATEGORY.getCode(), "Category name existed", HttpStatus.BAD_REQUEST)
+    CATEGORY_NAME_EXISTED(ErrorCode.ERROR_CATEGORY.getCode(), "Category name existed", HttpStatus.BAD_REQUEST),
+
+    PRODUCT_NOT_FOUND(ErrorCode.ERROR_PRODUCT.getCode(), "Could not found product", HttpStatus.BAD_REQUEST),
+    PRODUCT_NAME_EXISTED(ErrorCode.ERROR_PRODUCT.getCode(), "Product name existed", HttpStatus.BAD_REQUEST),
+    PRODUCT_NAME_NOT_EMPTY(ErrorCode.ERROR_PRODUCT.getCode(), "Product name must be not empty", HttpStatus.BAD_REQUEST),
+    PRODUCT_SKU_NOT_EMPTY(ErrorCode.ERROR_PRODUCT.getCode(), "Product sku must be not empty", HttpStatus.BAD_REQUEST),
+    PRODUCT_STOCK_NOT_NULL(ErrorCode.ERROR_PRODUCT.getCode(), "Stock must be not null", HttpStatus.BAD_REQUEST),
     ;
 
     private String message;
