@@ -22,38 +22,44 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(nullable = false, length = 512)
     String name;
 
     @Column(length = 128, nullable = false, unique = true)
     String sku; //stock keeping unit
 
-    @Column(length = 1024)
+    @Column(name = "short_description", length = 1024)
     String shortDescription;
 
-    @Column(columnDefinition = "MEDIUMTEXT")
+    @Column(name = "long_description", columnDefinition = "MEDIUMTEXT")
     String longDescription;
 
     @Column(nullable = false)
     Integer stock;
     boolean inStock;
 
-    @Column(nullable = false)
+    @Column(name = "sales_number", nullable = false)
     Integer salesNumber = 0;
 
     Long cost;
     Long price;
+
+    @Column(name = "discount_percentage")
     Double discountPercentage;
 
     Double rating;
 
+    @Column(name = "created_at", nullable = false)
     Date createdAt;
+
+    @Column(name = "updated_at",nullable = false)
     Date updatedAt;
 
     boolean active;
 
     String image;
 
-    @Column(columnDefinition = "json")
+    @Column(name = "product_details", columnDefinition = "json")
     String productDetails;
 
     @ManyToOne
