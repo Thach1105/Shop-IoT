@@ -12,6 +12,7 @@ public enum ErrorCode {
     ERROR_BRAND(1005, "Brand error"),
     ERROR_CATEGORY(1006, "Category error"),
     ERROR_PRODUCT(1007, "Product error"),
+    ERROR_ORDER(1008, "Order error")
 ;
     private Integer code;
     private String note;

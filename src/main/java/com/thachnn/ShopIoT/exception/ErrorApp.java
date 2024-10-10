@@ -35,6 +35,12 @@ public enum ErrorApp {
     PRODUCT_NAME_NOT_EMPTY(ErrorCode.ERROR_PRODUCT.getCode(), "Product name must be not empty", HttpStatus.BAD_REQUEST),
     PRODUCT_SKU_NOT_EMPTY(ErrorCode.ERROR_PRODUCT.getCode(), "Product sku must be not empty", HttpStatus.BAD_REQUEST),
     PRODUCT_STOCK_NOT_NULL(ErrorCode.ERROR_PRODUCT.getCode(), "Stock must be not null", HttpStatus.BAD_REQUEST),
+
+    ORDER_NOT_FOUND(ErrorCode.ERROR_ORDER.getCode(), "Could not found order", HttpStatus.BAD_REQUEST),
+    CHANGE_STATUS_FAILED(ErrorCode.ERROR_ORDER.getCode(), "Change status order failed", HttpStatus.BAD_REQUEST),
+    ORDER_ADDRESS_EMPTY(ErrorCode.ERROR_ORDER.getCode(), "Address must not be empty", HttpStatus.BAD_REQUEST),
+    ORDER_PHONE_EMPTY(ErrorCode.ERROR_ORDER.getCode(), "Phone number must not be empty", HttpStatus.BAD_REQUEST),
+    ORDER_INFORMATION_EMPTY(ErrorCode.ERROR_ORDER.getCode(), "Order detail must not be empty", HttpStatus.BAD_REQUEST)
     ;
 
     private String message;
