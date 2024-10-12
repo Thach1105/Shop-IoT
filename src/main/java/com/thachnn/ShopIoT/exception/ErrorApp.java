@@ -21,6 +21,7 @@ public enum ErrorApp {
 
     UNAUTHENTICATION(ErrorCode.ERROR_AUTHENTICATION.getCode(), "Unauthentication", HttpStatus.UNAUTHORIZED),
     TOKEN_INVALID(ErrorCode.ERROR_AUTHENTICATION.getCode(), "Token invalid", HttpStatus.UNAUTHORIZED),
+    ACCESS_DENIED(ErrorCode.ERROR_AUTHENTICATION.getCode(), "You don't have permission", HttpStatus.FORBIDDEN),
 
     BRAND_EXISTED(ErrorCode.ERROR_BRAND.getCode(), "Brand name existed", HttpStatus.BAD_REQUEST),
     BRAND_NAME_NOT_EMPTY(ErrorCode.ERROR_BRAND.getCode(), "Brand name must be not empty", HttpStatus.BAD_REQUEST),
@@ -40,7 +41,13 @@ public enum ErrorApp {
     CHANGE_STATUS_FAILED(ErrorCode.ERROR_ORDER.getCode(), "Change status order failed", HttpStatus.BAD_REQUEST),
     ORDER_ADDRESS_EMPTY(ErrorCode.ERROR_ORDER.getCode(), "Address must not be empty", HttpStatus.BAD_REQUEST),
     ORDER_PHONE_EMPTY(ErrorCode.ERROR_ORDER.getCode(), "Phone number must not be empty", HttpStatus.BAD_REQUEST),
-    ORDER_INFORMATION_EMPTY(ErrorCode.ERROR_ORDER.getCode(), "Order detail must not be empty", HttpStatus.BAD_REQUEST)
+    ORDER_INFORMATION_EMPTY(ErrorCode.ERROR_ORDER.getCode(), "Order detail must not be empty", HttpStatus.BAD_REQUEST),
+
+    REVIEW_COMMENT_EMPTY(ErrorCode.ERROR_REVIEW.getCode(), "Comment must not be empty", HttpStatus.BAD_REQUEST),
+    REVIEW_RATING_NULL(ErrorCode.ERROR_REVIEW.getCode(), "Rating must not be null", HttpStatus.BAD_REQUEST),
+    REVIEW_PRODUCT_NULL(ErrorCode.ERROR_REVIEW.getCode(), "Product id must not be null", HttpStatus.BAD_REQUEST),
+    REVIEW_NOT_FOUND(ErrorCode.ERROR_REVIEW.getCode(), "Could not found review", HttpStatus.BAD_REQUEST),
+    REVIEW_PRODUCT_EXISTED(ErrorCode.ERROR_REVIEW.getCode(), "You have rated this product ", HttpStatus.BAD_REQUEST),
     ;
 
     private String message;
