@@ -1,9 +1,13 @@
 package com.thachnn.ShopIoT.service;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jose.shaded.gson.JsonObject;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.thachnn.ShopIoT.dto.request.IntrospectRequest;
@@ -28,6 +32,8 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -77,8 +83,14 @@ public class AuthenticationService {
 
     //generate Token
     public String generateToken(User user){
-        JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
 
+        //build user data in token
+        Map<String, Object> dataUser = new HashMap<>();
+        dataUser.put("id", user.getId());
+        dataUser.put("username", user.getUsername());
+        dataUser.put("email", user.getEmail());
+
+        JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
                 .issuer("Shop IoT")
@@ -87,6 +99,7 @@ public class AuthenticationService {
                         Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()
                 ))
                 .jwtID(UUID.randomUUID().toString())
+                .claim("data", dataUser)
                 .claim("scope", user.getRole().getName())
                 .build();
 
