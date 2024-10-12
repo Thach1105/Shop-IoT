@@ -63,10 +63,10 @@ public class GlobalExceptionHandler {
 
         ApiResponse<?> apiResponse = new ApiResponse<>();
         apiResponse.setSuccess(false);
-        apiResponse.setMessage(ErrorApp.UNAUTHENTICATION.getMessage());
+        apiResponse.setMessage(ErrorApp.ACCESS_DENIED.getMessage());
 
         return ResponseEntity
-                .status(ErrorApp.UNAUTHENTICATION.getHttpStatusCode())
+                .status(ErrorApp.ACCESS_DENIED.getHttpStatusCode())
                 .body(apiResponse);
     }
 
