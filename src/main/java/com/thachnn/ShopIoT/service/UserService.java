@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -44,10 +45,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<User> getAll(){
         return userRepository.findAll();
     }
 
+    @PreAuthorize("hasRole('ADMIN') or #id == principal.claims['data']['id']")
     public User getById(Integer id){
         return userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorApp.USER_NOTFOUND));
@@ -64,6 +67,7 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorApp.EMAIL_NOT_EXISTED));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public Page<User> getPageUser(Integer pageNum, Integer size, String sortField, String keyword){
         Sort sort = sortField != null ? Sort.by(sortField).ascending() : Sort.unsorted();
         Pageable pageable = PageRequest.of(pageNum, size, sort);
@@ -75,8 +79,8 @@ public class UserService {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN') or #id == principal.claims['data']['id']")
     public User update(Integer id, UpdateUserRequest request){
-
         User prevUser = getById(id);
 
         User newUser = userMapper.toUserFromUpdateRequest(request);
@@ -88,6 +92,7 @@ public class UserService {
         return userRepository.save(newUser);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(Integer id){
         User user = getById(id);
 
