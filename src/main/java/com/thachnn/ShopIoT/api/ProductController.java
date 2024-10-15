@@ -32,7 +32,7 @@ public class ProductController {
     @Autowired
     private ProductMapper productMapper;
 
-    @PostMapping
+    @PostMapping /*checked*/
     public ResponseEntity<?> create(
             @RequestPart(name = "product")ProductRequest request,
             @RequestPart(name = "image")MultipartFile image
@@ -51,7 +51,7 @@ public class ProductController {
                 );
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}") /*checked*/
     public ResponseEntity<?> getSingleProduct(@PathVariable Long id){
 
         Product product = productService.getSingleProduct(id);
@@ -64,10 +64,10 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @GetMapping()
+    @GetMapping() /*checked*/
     public ResponseEntity<?> getAllProduct(
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
-            @RequestParam(name = "number", defaultValue = PAGE_NUMBER) Integer number,
+            @RequestParam(name = "page", defaultValue = PAGE_NUMBER) Integer number,
             @RequestParam(name = "sortBy", defaultValue = "id")String sortBy,
             @RequestParam(name = "order", defaultValue = "asc")String order
     ){
@@ -90,10 +90,10 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @GetMapping("/search")
+    @GetMapping("/search") /*checked*/
     public ResponseEntity<?> search(
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
-            @RequestParam(name = "number", defaultValue = PAGE_NUMBER) Integer number,
+            @RequestParam(name = "page", defaultValue = PAGE_NUMBER) Integer number,
             @RequestParam(name = "q", required = false) String keyword
     ){
         Page<Product> productPage = productService.search(number-1, size, keyword);
@@ -115,7 +115,7 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @GetMapping("/category/{id}")
+    @GetMapping("/category/{id}") /*checked*/
     public ResponseEntity<?> getProductsByACategory(
             @PathVariable Integer id,
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
@@ -142,7 +142,7 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @GetMapping("/brand/{id}")
+    @GetMapping("/brand/{id}") /*checked*/
     public ResponseEntity<?> getProductsByABrand(
             @PathVariable Integer id,
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
@@ -169,7 +169,7 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}") /*checked*/
     public ResponseEntity<?> update(
             @PathVariable Long id,
             @RequestPart("product") ProductRequest request,
@@ -185,7 +185,7 @@ public class ProductController {
     }
 
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}") /*checked*/
     public ResponseEntity<?> delete(@PathVariable Long id){
 
         productService.delete(id);
@@ -198,7 +198,7 @@ public class ProductController {
                 );
     }
 
-    @PutMapping("/{id}/add-stock")
+    @PutMapping("/{id}/add-stock") /*checked*/
     public ResponseEntity<?> addProductStock(
             @PathVariable("id") Long id,
             @RequestParam("quantity") Integer quantity
