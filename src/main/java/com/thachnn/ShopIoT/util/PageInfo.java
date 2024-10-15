@@ -19,6 +19,6 @@ public class PageInfo {
     private long totalElements;
     private Integer totalPages;
     private Integer page;
-    private boolean hasNext;
-    private boolean hasPrevious;
+    private Boolean hasNext = null;
+    private Boolean hasPrevious = null;
 }
