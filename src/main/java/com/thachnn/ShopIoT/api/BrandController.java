@@ -9,6 +9,8 @@ import com.thachnn.ShopIoT.service.BrandService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +28,7 @@ public class BrandController {
     @Autowired
     private BrandMapper brandMapper;
 
-    @PostMapping
+    @PostMapping /*checked*/
     public ResponseEntity<?> create(@Valid @RequestPart("brand") BrandRequest request,
                                     @RequestPart("logo")MultipartFile logo
     ){
@@ -44,7 +46,8 @@ public class BrandController {
                 );
     }
 
-    @GetMapping
+
+    @GetMapping /*checked*/
     public ResponseEntity<?> getBrand(
             @RequestParam(name = "name", required = false) String name
     ){
@@ -71,7 +74,7 @@ public class BrandController {
 
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}") /*checked*/
     public ResponseEntity<?> getById(@PathVariable("id")Integer id){
 
         Brand brand = brandService.getById(id);
@@ -83,7 +86,7 @@ public class BrandController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}") /*checked*/
     public ResponseEntity<?> update(@PathVariable("id")Integer id,
                                     @RequestPart("brand") BrandRequest request,
                                     @RequestPart(name = "logo", required = false) MultipartFile logo
@@ -99,10 +102,13 @@ public class BrandController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}") /*checked*/
     public ResponseEntity<?> delete(@PathVariable("id") Integer id){
         brandService.delete(id);
-        return ResponseEntity.ok().body("DELETE COMPLETED");
+        return ResponseEntity.ok().body(ApiResponse.builder()
+                        .success(true)
+                        .content("DELETE COMPLETED")
+                    .build());
     }
 
 }

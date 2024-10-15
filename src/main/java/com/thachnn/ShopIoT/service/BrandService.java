@@ -7,11 +7,9 @@ import com.thachnn.ShopIoT.model.Brand;
 import com.thachnn.ShopIoT.repository.BrandRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class BrandService {
