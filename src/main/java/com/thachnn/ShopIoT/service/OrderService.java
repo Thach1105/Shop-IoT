@@ -10,11 +10,17 @@ import com.thachnn.ShopIoT.model.*;
 import com.thachnn.ShopIoT.repository.OrderRepository;
 import com.thachnn.ShopIoT.repository.OrderStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@EnableMethodSecurity
 public class OrderService {
     @Autowired
     OrderStatusRepository orderStatusRepository;
@@ -34,12 +40,13 @@ public class OrderService {
     @Autowired
     OrderRepository orderRepository;
 
-    public Order createNewOrder(OrderRequest orderReq, String username){
+    @PreAuthorize("hasRole('USER')")
+    public Order createNewOrder(OrderRequest orderReq, Integer userId){
 
         // get status PENDING
         OrderStatus orderStatus = orderStatusRepository.findById(1).orElseThrow();
         //get user
-        User user = userService.getByUsername(username);
+        User user = userService.getById(userId);
 
         List<OrderDetailRequest> detailReqList = orderReq.getDetails();
 
@@ -63,6 +70,13 @@ public class OrderService {
         return orderRepository.save(newOrder);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<Order> getAll(Integer pageNumber, Integer pageSize){
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return orderRepository.findAll(pageable);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     public Order changeStatus(String orderCode, String orderStatus){
         OrderStatus status = orderStatusRepository.findByStatusName(orderStatus).orElseThrow();
         int check = orderRepository.updateOrderStatus(orderCode, status);
@@ -70,6 +84,7 @@ public class OrderService {
         else throw new AppException(ErrorApp.CHANGE_STATUS_FAILED);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public Order getOrderById(Integer id){
         return orderRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorApp.ORDER_NOT_FOUND));
@@ -80,6 +95,7 @@ public class OrderService {
                 .orElseThrow(() -> new AppException(ErrorApp.ORDER_NOT_FOUND));
     }
 
+    @PreAuthorize("#username == principal.claims['data']['username']")
     public List<Order> getMyOrder(String username){
         return orderRepository.getAllOrderByUser(username);
     }
