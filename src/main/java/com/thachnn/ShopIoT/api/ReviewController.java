@@ -32,12 +32,14 @@ public class ReviewController {
     @Autowired
     ReviewMapper reviewMapper;
 
-    @PostMapping
+    @PostMapping /*checked*/
     public ResponseEntity<?> create(@Valid @RequestBody ReviewRequest request,
                                     @AuthenticationPrincipal Jwt jwt
     ){
-        Review review = reviewService.createReview(request, jwt.getSubject());
+        String username = (String) jwt.getClaimAsMap("data").get("username");
+        Review review = reviewService.createReview(request, username);
         ReviewResponse reviewResponse = reviewMapper.toReviewResponse(review);
+
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
                 .content(reviewResponse)
@@ -46,7 +48,7 @@ public class ReviewController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}") /*checked*/
     public ResponseEntity<?> getById(@PathVariable Long id){
         Review review = reviewService.getSingleReview(id);
         ReviewResponse reviewResponse = reviewMapper.toReviewResponse(review);
@@ -58,7 +60,7 @@ public class ReviewController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/forProductByRating/{productId}")
+    @GetMapping("/forProductByRating/{productId}") /*checked*/
     public ResponseEntity<?> getForProduct(
             @PathVariable(name = "productId") Long productId,
             @RequestParam(name = "rating", required = false) Integer rating,
@@ -86,12 +88,13 @@ public class ReviewController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/forProductByUser/{productId}")
+    @GetMapping("/forProductByUser/{productId}") /*checked*/
     public ResponseEntity<?> getReviewForProductByUser(
             @PathVariable Long productId,
             @AuthenticationPrincipal Jwt jwt
     ){
-       Review review = reviewService.getByUserAndProduct(jwt.getSubject(), productId);
+        String username = (String) jwt.getClaimAsMap("data").get("username");
+       Review review = reviewService.getByUserAndProduct(username, productId);
        ReviewResponse reviewResponse = reviewMapper.toReviewResponse(review);
 
        ApiResponse<?> apiResponse = ApiResponse.builder()
@@ -102,18 +105,14 @@ public class ReviewController {
        return ResponseEntity.ok(apiResponse);
     }
 
-    @PutMapping("/update/{reviewId}")
+    @PutMapping("/update/{reviewId}") /*checked*/
     public ResponseEntity<?> updateReview(
             @PathVariable Long reviewId,
             @RequestBody ReviewRequest request,
             @AuthenticationPrincipal Jwt jwt
     ){
-        Map<String, Object> data = jwt.getClaimAsMap("data");
-        System.out.println(data.get("email"));
-        System.out.println(data.get("id"));
-        System.out.println(data.get("username"));
-
-        Review review = reviewService.updateReview(reviewId, request, jwt.getSubject());
+        String username = (String) jwt.getClaimAsMap("data").get("username");
+        Review review = reviewService.updateReview(reviewId, request, username);
         ReviewResponse reviewResponse = reviewMapper.toReviewResponse(review);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
@@ -124,7 +123,7 @@ public class ReviewController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @DeleteMapping("/{reviewId}")
+    @DeleteMapping("/{reviewId}") /*checked*/
     public ResponseEntity<?> deleteReview(
             @PathVariable Long reviewId
     ){

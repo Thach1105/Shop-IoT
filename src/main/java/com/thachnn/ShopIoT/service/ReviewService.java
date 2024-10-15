@@ -12,9 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Service;
 
 @Service
+@EnableMethodSecurity
 public class ReviewService {
 
     @Autowired
@@ -29,6 +32,7 @@ public class ReviewService {
     @Autowired
     ReviewMapper reviewMapper;
 
+    @PreAuthorize("hasRole('USER')")
     public Review createReview(ReviewRequest request, String username){
         User user = userService.getByUsername(username);
         Product product = productService.getSingleProduct(request.getProductId());
@@ -81,6 +85,7 @@ public class ReviewService {
         return reviewRepository.save(review);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteReview(Long id){
         reviewRepository.deleteById(id);
     }
