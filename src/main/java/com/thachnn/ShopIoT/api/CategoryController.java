@@ -24,7 +24,7 @@ public class CategoryController {
     @Autowired
     private CategoryMapper categoryMapper;
 
-    @GetMapping("/all")
+    @GetMapping("/all") /*checked*/
     public ResponseEntity<?> getAll(){
         List<Category> categories = categoryService.getAll();
         List<CategoryResponse> categoryResponseList =
@@ -38,7 +38,7 @@ public class CategoryController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @GetMapping()
+    @GetMapping() /*checked*/
     public ResponseEntity<?> getCategory(
             @RequestParam(name = "name", required = false) String name
     ){
@@ -65,7 +65,7 @@ public class CategoryController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}") /*checked*/
     public ResponseEntity<?> getById(@PathVariable Integer id){
         Category category = categoryService.getById(id);
         CategoryResponse categoryResponse = categoryMapper.toCategoryResponse(category);
@@ -78,7 +78,7 @@ public class CategoryController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}") /*checked*/
     public ResponseEntity<?> update(
             @PathVariable Integer id,
             @RequestBody CategoryRequest request
@@ -96,7 +96,7 @@ public class CategoryController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @PostMapping
+    @PostMapping /*checked*/
     public ResponseEntity<?> create(@Valid @RequestBody CategoryRequest request){
 
         Category newCategory = categoryService.create(request);
@@ -110,7 +110,7 @@ public class CategoryController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}") /*checked*/
     public ResponseEntity<?> delete(@PathVariable Integer id){
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
