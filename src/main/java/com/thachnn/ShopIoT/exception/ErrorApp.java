@@ -48,6 +48,9 @@ public enum ErrorApp {
     REVIEW_PRODUCT_NULL(ErrorCode.ERROR_REVIEW.getCode(), "Product id must not be null", HttpStatus.BAD_REQUEST),
     REVIEW_NOT_FOUND(ErrorCode.ERROR_REVIEW.getCode(), "Could not found review", HttpStatus.BAD_REQUEST),
     REVIEW_PRODUCT_EXISTED(ErrorCode.ERROR_REVIEW.getCode(), "You have rated this product ", HttpStatus.BAD_REQUEST),
+
+    CART_EMPTY(ErrorCode.ERROR_CART.getCode(), "Your cart is empty", HttpStatus.BAD_REQUEST),
+    NOT_FOUND_PRODUCT_IN_CART(ErrorCode.ERROR_CART.getCode(), "The product is not available in the cart", HttpStatus.BAD_REQUEST),
     ;
 
     private String message;
