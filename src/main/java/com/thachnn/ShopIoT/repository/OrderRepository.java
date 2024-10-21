@@ -21,6 +21,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     Optional<Order> findByOrderCode(String orderCode);
 
+    boolean existsByOrderCode(String orderCode);
+
     @Query("SELECT o FROM Order o WHERE o.user.username = ?1")
     List<Order> getAllOrderByUser(String username);
 }

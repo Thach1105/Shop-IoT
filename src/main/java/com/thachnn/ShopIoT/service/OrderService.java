@@ -84,6 +84,18 @@ public class OrderService {
         else throw new AppException(ErrorApp.CHANGE_STATUS_FAILED);
     }
 
+    public Order changPaymentStatus(Order order, boolean paymentStatus){
+        order.setPaymentStatus(paymentStatus);
+        return orderRepository.save(order);
+    }
+
+    public Order saveTransactionNo(String orderCode, String transactionNo){
+        Order order = getOrderByCode(orderCode);
+        order.setTransactionReference(transactionNo);
+
+        return orderRepository.save(order);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     public Order getOrderById(Integer id){
         return orderRepository.findById(id)
@@ -93,6 +105,10 @@ public class OrderService {
     public Order getOrderByCode(String orderCode){
         return orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new AppException(ErrorApp.ORDER_NOT_FOUND));
+    }
+
+    public boolean checkOrderCode(String orderCode){
+        return orderRepository.existsByOrderCode(orderCode);
     }
 
     @PreAuthorize("#username == principal.claims['data']['username']")

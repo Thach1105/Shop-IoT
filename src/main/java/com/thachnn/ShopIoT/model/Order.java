@@ -30,6 +30,9 @@ public class Order {
     boolean paymentStatus;
     String paymentType;
 
+    @Column(name = "transaction_reference")
+    String transactionReference;
+
     @Column(name = "order_time", nullable = false)
     Date orderTime;
 
