@@ -29,7 +29,8 @@ import java.util.List;
 public class SecurityConfig {
     private final String[] ENDPOINTS_PUBLIC = {
             "/auth/login", "/auth/logout", "/auth/refresh", "/auth/introspect",
-            "/ws"
+            "/ws",
+            "/payment/vn-pay/IPN", "/payment/zalo-pay/call-back"
     };
 
     @Autowired
