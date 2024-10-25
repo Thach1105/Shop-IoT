@@ -30,9 +30,6 @@ public class Order {
     boolean paymentStatus;
     String paymentType;
 
-    @Column(name = "transaction_reference")
-    String transactionReference;
-
     @Column(name = "order_time", nullable = false)
     Date orderTime;
 
@@ -54,6 +51,12 @@ public class Order {
 
     @Column(length = 256)
     String notes;
+
+    @Column(unique = true)
+    String transactionId;
+
+    @Column(columnDefinition = "json")
+    String callbackPayment;
 
     @PrePersist
     protected void onCreate(){

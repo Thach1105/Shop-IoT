@@ -18,6 +18,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @EnableMethodSecurity
@@ -84,16 +85,32 @@ public class OrderService {
         else throw new AppException(ErrorApp.CHANGE_STATUS_FAILED);
     }
 
-    public Order changPaymentStatus(Order order, boolean paymentStatus){
+    public void changPaymentStatus(Order order, boolean paymentStatus){
         order.setPaymentStatus(paymentStatus);
+        orderRepository.save(order);
+    }
+
+    public void saveTransactionId(Order order, String transactionId, String paymentType){
+        order.setTransactionId(transactionId);
+        order.setPaymentType(paymentType);
+        orderRepository.save(order);
+    }
+
+    public boolean existingByOrderCodeAndTransaction(String orderCode, String transactionId){
+        return orderRepository.existsByOrderCodeAndTransactionId(orderCode, transactionId);
+    }
+
+    public Order saveCallbackPaymentData(Order order, String callbackData){
+        order.setCallbackPayment(callbackData);
         return orderRepository.save(order);
     }
 
-    public Order saveTransactionNo(String orderCode, String transactionNo){
-        Order order = getOrderByCode(orderCode);
-        order.setTransactionReference(transactionNo);
+    public Optional<Order> getOrderByTransactionId(String transactionId){
+        return orderRepository.findByTransactionId(transactionId);
+    }
 
-        return orderRepository.save(order);
+    public boolean checkTransactionId(String transactionId){
+        return orderRepository.existsByTransactionId(transactionId);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
