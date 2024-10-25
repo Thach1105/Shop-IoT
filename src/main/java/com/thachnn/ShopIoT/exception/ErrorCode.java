@@ -14,10 +14,11 @@ public enum ErrorCode {
     ERROR_PRODUCT(1007, "Product error"),
     ERROR_ORDER(1008, "Order error"),
     ERROR_REVIEW(1009, "Review error"),
-    ERROR_CART(1010, "Cart error")
+    ERROR_CART(1010, "Cart error"),
+    ERROR_PAYMENT(1011, "Payment error"),
 ;
-    private Integer code;
-    private String note;
+    private final Integer code;
+    private final String note;
 
     ErrorCode(Integer code, String note){
         this.code = code;

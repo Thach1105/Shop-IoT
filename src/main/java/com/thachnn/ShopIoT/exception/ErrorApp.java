@@ -51,6 +51,8 @@ public enum ErrorApp {
 
     CART_EMPTY(ErrorCode.ERROR_CART.getCode(), "Your cart is empty", HttpStatus.BAD_REQUEST),
     NOT_FOUND_PRODUCT_IN_CART(ErrorCode.ERROR_CART.getCode(), "The product is not available in the cart", HttpStatus.BAD_REQUEST),
+
+    PAID_ORDER(ErrorCode.ERROR_PAYMENT.getCode(), "The order has been paid", HttpStatus.BAD_REQUEST),
     ;
 
     private String message;
