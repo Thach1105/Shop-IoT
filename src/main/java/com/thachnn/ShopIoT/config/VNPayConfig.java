@@ -9,13 +9,13 @@ import java.security.NoSuchAlgorithmException;
 
 @Configuration
 public class VNPayConfig {
-    public static String vnp_TmnCode = "RU5TOKS0";
+    public static final String vnp_TmnCode = "RU5TOKS0";
 
-    public static String secretKey = "575ZNK8IBDNMRGKHQ59NOG0S397143WK";
+    public static final String secretKey = "575ZNK8IBDNMRGKHQ59NOG0S397143WK";
 
-    public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static String vnp_ReturnUrl = "http://localhost:8080/shopIoT/api/payment/vn-pay/call-back";
-    public static String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+    public static final String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+    public static final String vnp_ReturnUrl = "http://localhost:8080/shopIoT/api/payment/vn-pay/call-back";
+    public static final String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
 
     public static String md5(String message) {
         String digest = null;
