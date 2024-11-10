@@ -17,6 +17,7 @@ public enum ErrorApp {
     USERNAME_EXISTED(ErrorCode.ERROR_REGISTER.getCode(), "Username existed", HttpStatus.BAD_REQUEST),
     EMAIL_EXISTED(ErrorCode.ERROR_REGISTER.getCode(), "Email existed", HttpStatus.BAD_REQUEST),
 
+    OLD_PASSWORD_INCORRECT(ErrorCode.ERROR_USER.getCode(), "Incorrect password", HttpStatus.BAD_REQUEST),
     USER_NOTFOUND(ErrorCode.ERROR_USER.getCode(), "Could not found user", HttpStatus.BAD_REQUEST),
 
     UNAUTHENTICATION(ErrorCode.ERROR_AUTHENTICATION.getCode(), "Unauthentication", HttpStatus.UNAUTHORIZED),
