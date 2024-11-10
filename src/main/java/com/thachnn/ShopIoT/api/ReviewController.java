@@ -16,8 +16,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
 
 @RestController
 @RequestMapping("/reviews")
@@ -60,6 +59,19 @@ public class ReviewController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @GetMapping("/overall/{productId}")
+    public ResponseEntity<?> getOverallReviewForProduct(
+            @PathVariable(name = "productId") Long productId
+    ){
+        var overall = reviewService.getOverallReviewForProduct(productId);
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .content(overall)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @GetMapping("/forProductByRating/{productId}") /*checked*/
     public ResponseEntity<?> getForProduct(
             @PathVariable(name = "productId") Long productId,
@@ -72,6 +84,7 @@ public class ReviewController {
                 .totalElements(slice.getNumberOfElements())
                 .page(slice.getNumber() + 1)
                 .size(slice.getSize())
+                .hasPrevious(slice.hasPrevious())
                 .hasNext(slice.hasNext())
                 .build();
 

@@ -1,6 +1,9 @@
 package com.thachnn.ShopIoT.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.thachnn.ShopIoT.dto.request.ReviewRequest;
+import com.thachnn.ShopIoT.dto.response.ReviewOverall;
 import com.thachnn.ShopIoT.exception.AppException;
 import com.thachnn.ShopIoT.exception.ErrorApp;
 import com.thachnn.ShopIoT.mapper.ReviewMapper;
@@ -15,6 +18,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @EnableMethodSecurity
@@ -49,6 +54,26 @@ public class ReviewService {
     public Review getSingleReview(Long id){
         return reviewRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorApp.REVIEW_NOT_FOUND));
+    }
+
+    public ReviewOverall getOverallReviewForProduct(Long productId){
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode detail = objectMapper.createObjectNode();
+        long totalReview = reviewRepository.countReviewsByProductId(productId);
+        Double average = reviewRepository.averageRatingByProductId(productId);
+        var ratingCounts  = reviewRepository.countRatingsByProductId(productId);
+
+        for (Object[] ratingCount : ratingCounts) {
+            Integer rating = (Integer) ratingCount[0];
+            Long count = (Long) ratingCount[1];
+            detail.put("_"+rating+"Star", count);
+        }
+
+        return ReviewOverall.builder()
+                .totalReviews(totalReview)
+                .averageRating(average)
+                .detail(detail)
+                .build();
     }
 
     public boolean existReviewByUserAndProduct(User user, Product product){

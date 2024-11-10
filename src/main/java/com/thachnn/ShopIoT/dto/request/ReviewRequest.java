@@ -10,7 +10,6 @@ import lombok.Setter;
 @Setter
 @Builder
 public class ReviewRequest {
-
     @NotEmpty(message = "REVIEW_COMMENT_EMPTY")
     String comment;
 

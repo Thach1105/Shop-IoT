@@ -24,6 +24,7 @@ public class Review {
     @Column(length = 2048, nullable = false)
     private String comment;
 
+    @Column(nullable = false)
     private Integer rating;
 
     @Column(name = "created_time", nullable = false)

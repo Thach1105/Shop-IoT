@@ -1,5 +1,6 @@
 package com.thachnn.ShopIoT.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AccessLevel;
@@ -19,7 +20,9 @@ public class ReviewResponse {
     Long id;
     String comment;
     Integer rating;
-    Date createAt;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Asia/Ho_Chi_Minh")
+    Date createdAt;
     JsonNode user;
     JsonNode product;
 }
