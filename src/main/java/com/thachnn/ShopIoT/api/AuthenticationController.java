@@ -12,10 +12,7 @@ import com.thachnn.ShopIoT.dto.response.IntrospectResponse;
 import com.thachnn.ShopIoT.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 
@@ -30,6 +27,20 @@ public class AuthenticationController {
     public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequest request){
 
         AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
+
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .content(authenticationResponse)
+                .build();
+
+        return ResponseEntity.ok().body(apiResponse);
+    }
+
+    @PostMapping("/oauth/authorization/google")
+    public ResponseEntity<ApiResponse<?>> oauth2Google(
+            @RequestParam(name = "code") String code
+    ){
+        AuthenticationResponse authenticationResponse = authenticationService.oauth2GoogleAuthenticate(code);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)

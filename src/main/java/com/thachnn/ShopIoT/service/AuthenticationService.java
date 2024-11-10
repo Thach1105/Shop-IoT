@@ -1,13 +1,11 @@
 package com.thachnn.ShopIoT.service;
+
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import com.thachnn.ShopIoT.dto.request.IntrospectRequest;
-import com.thachnn.ShopIoT.dto.request.LoginRequest;
-import com.thachnn.ShopIoT.dto.request.LogoutRequest;
-import com.thachnn.ShopIoT.dto.request.RefreshRequest;
+import com.thachnn.ShopIoT.dto.request.*;
 import com.thachnn.ShopIoT.dto.response.AuthenticationResponse;
 import com.thachnn.ShopIoT.dto.response.IntrospectResponse;
 import com.thachnn.ShopIoT.exception.AppException;
@@ -15,9 +13,10 @@ import com.thachnn.ShopIoT.exception.ErrorApp;
 import com.thachnn.ShopIoT.model.InvalidatedToken;
 import com.thachnn.ShopIoT.model.User;
 import com.thachnn.ShopIoT.repository.InvalidatedTokenRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.thachnn.ShopIoT.repository.httpclient.OutboundIdentityClient;
+import com.thachnn.ShopIoT.repository.httpclient.OutboundUserClient;
+import com.thachnn.ShopIoT.util.TransactionUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,10 +29,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class AuthenticationService {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
     @Value("${jwt.valid-duration}")
     protected long VALID_DURATION;
 
@@ -43,29 +42,48 @@ public class AuthenticationService {
     @Value("${jwt.refreshable-duration}")
     protected long REFRESHABLE_DURATION;
 
-    @Autowired
-    private InvalidatedTokenRepository invalidatedTokenRepository;
+    @Value("${outbound.google.client-id}")
+    protected String GOOGLE_CLIENT_ID;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    @Value("${outbound.google.client-secret}")
+    protected String GOOGLE_CLIENT_SECRET;
 
-    @Autowired
-    private UserService userService;
+    @Value("${outbound.google.redirect-uri}")
+    protected String REDIRECT_URI;
+
+    protected final String GRANT_TYPE = "authorization_code";
+
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
+    private final OutboundIdentityClient outboundIdentityClient;
+    private final OutboundUserClient outboundUserClient;
+    private final EmailService emailService;
+
+    public AuthenticationService(
+            InvalidatedTokenRepository invalidatedTokenRepository,
+            PasswordEncoder passwordEncoder,
+            UserService userService,
+            OutboundIdentityClient outboundIdentityClient,
+            OutboundUserClient outboundUserClient,
+            EmailService emailService
+    ){
+        this.userService = userService;
+        this.invalidatedTokenRepository = invalidatedTokenRepository;
+        this.outboundIdentityClient = outboundIdentityClient;
+        this.passwordEncoder = passwordEncoder;
+        this.outboundUserClient = outboundUserClient;
+        this.emailService = emailService;
+    }
 
     //login
     public AuthenticationResponse authenticate(LoginRequest request){
 
-        User user = null;
-        if(request.getUsername() != null){
-            user = userService.getByUsername(request.getUsername());
-        } else {
-            user = userService.getByEmail(request.getEmail());
-        }
-
+        User user = userService.getByUsername(request.getUsername());
         if(user != null){
-            boolean authencated = passwordEncoder.matches(request.getPassword(), user.getPassword());
+            boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
-            if(!authencated) throw new AppException(ErrorApp.PASSWORD_INCORRECT);
+            if(!authenticated) throw new AppException(ErrorApp.PASSWORD_INCORRECT);
 
             String token = generateToken(user);
             return AuthenticationResponse.builder()
@@ -183,7 +201,6 @@ public class AuthenticationService {
 
     }
 
-
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         String token = request.getToken();
         boolean valid = true;
@@ -195,6 +212,43 @@ public class AuthenticationService {
 
         return IntrospectResponse.builder()
                 .valid(valid)
+                .build();
+    }
+
+    public AuthenticationResponse oauth2GoogleAuthenticate(String code){
+        var response = outboundIdentityClient.exchangeToken(
+                ExchangeTokenRequest.builder()
+                        .code(code)
+                        .clientId(GOOGLE_CLIENT_ID)
+                        .clientSecret(GOOGLE_CLIENT_SECRET)
+                        .redirectUri(REDIRECT_URI)
+                        .grantType(GRANT_TYPE)
+                        .build());
+        var userInfo = outboundUserClient.getUserInfo("json",response.getAccessToken());
+
+        User user = new User();
+        if(userService.existingEmail(userInfo.getEmail())){
+            user = userService.getByEmail(userInfo.getEmail());
+        } else {
+            String password = TransactionUtil.getRandomNumber(10);
+            user = userService.create(CreateUserRequest.builder()
+                            .username(userInfo.getEmail())
+                            .password(password)
+                            .fullName(userInfo.getName())
+                            .email(userInfo.getEmail())
+                    .build());
+
+            String subject = "Chào mừng bạn đến với Shop IoT";
+            String body = "Cảm ơn bạn đã đăng ký!\n"
+                        + "Thông tin tài khoản của bạn:\n"
+                        + "Tên tài khoản: " + userInfo.getEmail() + "\n"
+                        + "Mật khẩu: " + password;
+
+            emailService.sendSimpleMessage(userInfo.getEmail(), subject, body);
+        }
+        String token = generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(token)
                 .build();
     }
 }
