@@ -1,0 +1,16 @@
+package com.thachnn.ShopIoT.repository.httpclient;
+
+
+import com.thachnn.ShopIoT.dto.request.ExchangeTokenRequest;
+import com.thachnn.ShopIoT.dto.response.ExchangeTokenResponse;
+import feign.QueryMap;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+
+@FeignClient(name = "outbound-identity", url = "https://oauth2.googleapis.com")
+public interface OutboundIdentityClient {
+
+    @PostMapping(value = "/token", produces = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    ExchangeTokenResponse exchangeToken(@QueryMap ExchangeTokenRequest request);
+}
