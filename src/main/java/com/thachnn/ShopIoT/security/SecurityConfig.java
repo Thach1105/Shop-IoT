@@ -29,6 +29,7 @@ import java.util.List;
 public class SecurityConfig {
     private final String[] ENDPOINTS_PUBLIC = {
             "/auth/login", "/auth/logout", "/auth/refresh", "/auth/introspect",
+            "/auth/oauth/authorization/google",
             "/ws",
             "/payment/vn-pay/IPN", "/payment/zalo-pay/call-back"
     };
@@ -40,7 +41,7 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true); // Cho phép gửi thông tin xác thực như cookie
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // Thêm domain React
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173")); // Thêm domain React
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         //config.setExposedHeaders(List.of("Authorization")); // Cho phép client đọc các header cụ thể
@@ -64,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/reviews/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/reviews/overall/{productId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/reviews/forProductByRating/**").permitAll()
 
                         .requestMatchers("/brands/**").hasRole("ADMIN")
