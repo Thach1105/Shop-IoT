@@ -1,5 +1,6 @@
 package com.thachnn.ShopIoT.api;
 
+import com.thachnn.ShopIoT.dto.request.ChangePasswordRequest;
 import com.thachnn.ShopIoT.dto.request.CreateUserRequest;
 import com.thachnn.ShopIoT.dto.request.UpdateUserRequest;
 import com.thachnn.ShopIoT.dto.response.ApiResponse;
@@ -126,6 +127,21 @@ public class UserController {
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
                 .content(userResponse)
+                .build();
+
+        return ResponseEntity.ok().body(apiResponse);
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<ApiResponse<?>> changePassword(
+            @PathVariable("id") Integer id,
+            @RequestBody ChangePasswordRequest request
+    ){
+        userService.changePassword(id, request);
+
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .content("Password has been changed successfully")
                 .build();
 
         return ResponseEntity.ok().body(apiResponse);

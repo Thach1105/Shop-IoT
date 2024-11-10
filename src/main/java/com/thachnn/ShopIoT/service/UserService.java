@@ -1,5 +1,6 @@
 package com.thachnn.ShopIoT.service;
 
+import com.thachnn.ShopIoT.dto.request.ChangePasswordRequest;
 import com.thachnn.ShopIoT.dto.request.CreateUserRequest;
 import com.thachnn.ShopIoT.dto.request.UpdateUserRequest;
 import com.thachnn.ShopIoT.exception.AppException;
@@ -21,17 +22,23 @@ import java.util.List;
 
 @Service
 public class UserService {
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
+    private final RoleService roleService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private RoleService roleService;
-
-    @Autowired
-    private UserRepository userRepository;
+    public UserService(
+            PasswordEncoder passwordEncoder,
+            UserMapper userMapper,
+            RoleService roleService,
+            UserRepository userRepository
+    ){
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.roleService = roleService;
+    }
 
     public User create(CreateUserRequest request){
         Role roleUSER = roleService.getByName("USER");
@@ -67,6 +74,10 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorApp.EMAIL_NOT_EXISTED));
     }
 
+    public boolean existingEmail(String email){
+        return userRepository.existsByEmail(email);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     public Page<User> getPageUser(Integer pageNum, Integer size, String sortField, String keyword){
         Sort sort = sortField != null ? Sort.by(sortField).ascending() : Sort.unsorted();
@@ -82,6 +93,9 @@ public class UserService {
     @PreAuthorize("hasRole('ADMIN') or #id == principal.claims['data']['id']")
     public User update(Integer id, UpdateUserRequest request){
         User prevUser = getById(id);
+        if(!prevUser.getEmail().equals(request.getEmail()) && existingEmail(request.getEmail())){
+            throw new AppException(ErrorApp.EMAIL_EXISTED);
+        }
 
         User newUser = userMapper.toUserFromUpdateRequest(request);
         newUser.setId(prevUser.getId());
@@ -97,5 +111,16 @@ public class UserService {
         User user = getById(id);
 
         userRepository.deleteById(id);
+    }
+
+    @PreAuthorize("#id == principal.claims['data']['id']")
+    public void changePassword(Integer id, ChangePasswordRequest request){
+        User user = getById(id);
+        if(passwordEncoder.matches(request.getOldPassword(), user.getPassword())){
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            userRepository.save(user);
+        } else {
+            throw new AppException(ErrorApp.OLD_PASSWORD_INCORRECT);
+        }
     }
 }

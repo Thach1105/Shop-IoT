@@ -33,7 +33,7 @@ public class User {
     @JoinColumn(name = "role_name")
     Role role;
 
-    @Column(length = 64, nullable = false, unique = true)
+    @Column(length = 64, unique = true)
     String email;
 
     @Column(length = 32)
