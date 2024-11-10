@@ -9,7 +9,6 @@ import com.thachnn.ShopIoT.mapper.OrderMapper;
 import com.thachnn.ShopIoT.model.*;
 import com.thachnn.ShopIoT.repository.OrderRepository;
 import com.thachnn.ShopIoT.repository.OrderStatusRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,23 +22,29 @@ import java.util.Optional;
 @Service
 @EnableMethodSecurity
 public class OrderService {
-    @Autowired
-    OrderStatusRepository orderStatusRepository;
 
-    @Autowired
-    ProductService productService;
+    private final OrderStatusRepository orderStatusRepository;
+    private final ProductService productService;
+    private final UserService userService;
+    private final OrderMapper orderMapper;
+    private final OrderDetailMapper orderDetailMapper;
+    private final OrderRepository orderRepository;
 
-    @Autowired
-    UserService userService;
-
-    @Autowired
-    OrderMapper orderMapper;
-
-    @Autowired
-    OrderDetailMapper orderDetailMapper;
-
-    @Autowired
-    OrderRepository orderRepository;
+    public OrderService(
+            OrderStatusRepository orderStatusRepository,
+            ProductService productService,
+            UserService userService,
+            OrderMapper orderMapper,
+            OrderDetailMapper orderDetailMapper,
+            OrderRepository orderRepository
+    ){
+        this.orderRepository = orderRepository;
+        this.productService = productService;
+        this.userService = userService;
+        this.orderMapper = orderMapper;
+        this.orderDetailMapper = orderDetailMapper;
+        this.orderStatusRepository = orderStatusRepository;
+    }
 
     @PreAuthorize("hasRole('USER')")
     public Order createNewOrder(OrderRequest orderReq, Integer userId){
@@ -85,6 +90,13 @@ public class OrderService {
         else throw new AppException(ErrorApp.CHANGE_STATUS_FAILED);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    public Order changePaymentStatusByAdmin(String orderCode, boolean paymentStatus){
+        int check = orderRepository.updateOrderPaymentStatus(orderCode, paymentStatus);
+        if(check == 1) return getOrderByCode(orderCode);
+        else throw new AppException(ErrorApp.CHANGE_STATUS_FAILED);
+    }
+
     public void changPaymentStatus(Order order, boolean paymentStatus){
         order.setPaymentStatus(paymentStatus);
         orderRepository.save(order);
@@ -114,19 +126,27 @@ public class OrderService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    public Page<Order> getOrdersByUser(Integer userId, Integer pageNum, Integer pageSize){
+        User user = userService.getById(userId);
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        return orderRepository.getAllOrderByUserId(userId, pageable);
+
+    }
+
+    /*@PreAuthorize("hasRole('ADMIN')")
     public Order getOrderById(Integer id){
         return orderRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorApp.ORDER_NOT_FOUND));
-    }
+    }*/
 
     public Order getOrderByCode(String orderCode){
         return orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new AppException(ErrorApp.ORDER_NOT_FOUND));
     }
 
-    public boolean checkOrderCode(String orderCode){
+    /*public boolean checkOrderCode(String orderCode){
         return orderRepository.existsByOrderCode(orderCode);
-    }
+    }*/
 
     @PreAuthorize("#username == principal.claims['data']['username']")
     public List<Order> getMyOrder(String username){

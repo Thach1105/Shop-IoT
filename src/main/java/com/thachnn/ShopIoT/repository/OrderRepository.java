@@ -2,6 +2,8 @@ package com.thachnn.ShopIoT.repository;
 
 import com.thachnn.ShopIoT.model.Order;
 import com.thachnn.ShopIoT.model.OrderStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,6 +21,11 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("UPDATE Order o SET o.orderStatus = ?2 WHERE o.orderCode = ?1")
     int updateOrderStatus(String orderCode, OrderStatus status);
 
+    @Transactional
+    @Modifying
+    @Query("UPDATE Order o SET o.paymentStatus = ?2 WHERE o.orderCode = ?1")
+    int updateOrderPaymentStatus(String orderCode, boolean paymentStatus);
+
     @Query("SELECT COUNT(o) > 0 FROM Order o " +
             "WHERE o.orderCode = ?1 " +
             "AND o.transactionId = ?2")
@@ -34,4 +41,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT o FROM Order o WHERE o.user.username = ?1")
     List<Order> getAllOrderByUser(String username);
+
+    @Query("SELECT o FROM Order o WHERE o.user.id = ?1")
+    Page<Order> getAllOrderByUserId(Integer userId, Pageable pageable);
 }

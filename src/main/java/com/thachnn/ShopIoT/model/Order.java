@@ -61,7 +61,7 @@ public class Order {
     @PrePersist
     protected void onCreate(){
         if(this.orderCode == null){
-            this.orderCode = UUID.randomUUID().toString().toUpperCase().replace("-", "");
+            this.orderCode = UUID.randomUUID().toString().toUpperCase().replace("-", "").substring(0, 16);
         }
         this.orderTime = new Date();
     }

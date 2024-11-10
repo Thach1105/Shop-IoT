@@ -1,6 +1,7 @@
 package com.thachnn.ShopIoT.dto.response;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
 
 @AllArgsConstructor
@@ -10,7 +11,7 @@ import lombok.*;
 @Builder
 public class OrderDetailResponse {
 
-    String product;
+    JsonNode product;
     int quantity;
     int unitPrice;
     int totalPrice;

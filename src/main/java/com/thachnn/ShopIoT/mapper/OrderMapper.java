@@ -13,6 +13,7 @@ public interface OrderMapper {
 
     @Mapping(target = "fullName", source = "user.fullName")
     @Mapping(target = "orderStatus", source = "orderStatus.statusName")
+    @Mapping(target = "email", source = "user.email")
     @Mapping(target = "orderDetail", ignore = true)
     OrderResponse toOrderResponse(Order order);
 }

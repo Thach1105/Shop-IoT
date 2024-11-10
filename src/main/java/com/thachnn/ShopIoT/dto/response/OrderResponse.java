@@ -26,6 +26,7 @@ public class OrderResponse {
     String fullName;
     String address;
     String phone;
+    String email;
 
     String paymentType;
     boolean paymentStatus;
