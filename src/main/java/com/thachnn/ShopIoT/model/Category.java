@@ -24,7 +24,11 @@ public class Category {
     @Column(length = 128, nullable = false, unique = true)
     private String name;
 
+    @Column(length = 4096)
     private String description;
+
+    @Column(nullable = false)
+    private String slug;
 
     private boolean enabled;
 

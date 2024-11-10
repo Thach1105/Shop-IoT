@@ -9,11 +9,9 @@ import com.thachnn.ShopIoT.service.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/categories")
@@ -96,6 +94,28 @@ public class CategoryController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
+    @PutMapping("/change-status/{id}")
+    public ResponseEntity<?> changeStatus(
+            @PathVariable Integer id,
+            @RequestParam("enabled") boolean status
+    ){
+        String content;
+        int res = categoryService.changeStatus(id, status);
+        if(res > 0) {
+            content = "CHANGE STATUS SUCCESSFULLY";
+        } else {
+            content = "Could not found category id";
+        }
+
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .content(content)
+                .build();
+
+        return ResponseEntity.ok().body(apiResponse);
+    }
+
+
     @PostMapping /*checked*/
     public ResponseEntity<?> create(@Valid @RequestBody CategoryRequest request){
 
@@ -112,6 +132,7 @@ public class CategoryController {
 
     @DeleteMapping("/{id}") /*checked*/
     public ResponseEntity<?> delete(@PathVariable Integer id){
+        categoryService.delete(id);
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
                 .content("DELETE COMPLETED")

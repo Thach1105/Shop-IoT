@@ -33,6 +33,7 @@ public class CategoryService {
     public Category create(CategoryRequest request){
 
         Category newCategory = categoryMapper.toCategory(request);
+        System.out.println(newCategory);
         if(categoryRepository.existsByName(request.getName()))
             throw new AppException(ErrorApp.CATEGORY_NAME_EXISTED);
 
@@ -63,6 +64,10 @@ public class CategoryService {
             prevCategory.setParent(parent);
         }
 
+        if(!request.isEnabled()){
+            categoryRepository.updateCategoryStatusAllChildren(id, false);
+        }
+
         return categoryRepository.save(prevCategory);
     }
 
@@ -86,6 +91,15 @@ public class CategoryService {
     public Category getByName(String name){
         return categoryRepository.findByName(name)
                 .orElseThrow(() -> new AppException(ErrorApp.CATEGORY_NOT_FOUND));
+    }
+
+    public int changeStatus(Integer id, boolean status){
+        if(status) {
+            return categoryRepository.updateSingleCategoryStatus(id, true);
+        } else {
+            return categoryRepository.updateCategoryStatusAllChildren(id, false);
+        }
+
     }
 
 }

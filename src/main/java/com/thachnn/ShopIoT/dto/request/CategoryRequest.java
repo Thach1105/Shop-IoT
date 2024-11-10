@@ -16,5 +16,8 @@ public class CategoryRequest {
     String name;
     Integer parent;
     String description;
+
+    @NotEmpty
+    String slug;
     boolean enabled;
 }

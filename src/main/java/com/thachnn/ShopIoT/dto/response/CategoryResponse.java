@@ -17,6 +17,7 @@ public class CategoryResponse {
     Integer id;
     String name;
     String description;
+    String slug;
     boolean enabled;
     Integer parent_id;
     List<CategoryResponse> children;
