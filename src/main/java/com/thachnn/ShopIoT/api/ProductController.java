@@ -3,6 +3,7 @@ package com.thachnn.ShopIoT.api;
 import com.thachnn.ShopIoT.dto.request.ProductRequest;
 import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.ProductResponse;
+import com.thachnn.ShopIoT.dto.response.ProductResponseSimple;
 import com.thachnn.ShopIoT.mapper.ProductMapper;
 import com.thachnn.ShopIoT.model.Product;
 import com.thachnn.ShopIoT.service.ProductService;
@@ -79,7 +80,7 @@ public class ProductController {
                 .totalPages(productPage.getTotalPages())
                 .build();
         List<Product> products = productPage.getContent();
-        List<ProductResponse> responseList = products.stream().map(productMapper::toProductResponse).toList();
+        List<ProductResponseSimple> responseList = products.stream().map(productMapper::toProductResponseSimple).toList();
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -94,9 +95,16 @@ public class ProductController {
     public ResponseEntity<?> search(
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
             @RequestParam(name = "page", defaultValue = PAGE_NUMBER) Integer number,
-            @RequestParam(name = "q", required = false) String keyword
+            @RequestParam(name = "q", defaultValue = "") String keyword,
+            @RequestParam(name = "category", required = false) Integer categoryId,
+            @RequestParam(name = "brand", required = false) Integer brandId,
+            @RequestParam(name = "active", required = false) Boolean active,
+            @RequestParam(name = "inStock", required = false) Boolean inStock
     ){
-        Page<Product> productPage = productService.search(number-1, size, keyword);
+
+        Page<Product> productPage =
+                productService.search(number-1, size, keyword, categoryId, brandId, active, inStock);
+        System.out.println(productPage.getContent());
         PageInfo pageInfo = PageInfo.builder()
                 .page(productPage.getNumber()+1)
                 .size(productPage.getSize())
@@ -104,7 +112,7 @@ public class ProductController {
                 .totalPages(productPage.getTotalPages())
                 .build();
         List<Product> products = productPage.getContent();
-        List<ProductResponse> responseList = products.stream().map(productMapper::toProductResponse).toList();
+        List<ProductResponseSimple> responseList = products.stream().map(productMapper::toProductResponseSimple).toList();
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -175,6 +183,7 @@ public class ProductController {
             @RequestPart("product") ProductRequest request,
             @RequestPart(name = "image", required = false)MultipartFile image
     ){
+        System.out.println(image);
         Product product = productService.update(id, request, image);
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)

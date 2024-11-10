@@ -57,6 +57,7 @@ public class Product {
 
     boolean active;
 
+    String slug;
     String image;
 
     @Column(name = "product_details", columnDefinition = "json")

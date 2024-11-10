@@ -76,11 +76,21 @@ public class ProductService {
         return productRepository.findAll(pageable);
     }
 
-    public Page<Product> search(Integer number, Integer size, String keyword){
+    public Page<Product> search(
+            Integer number,
+            Integer size,
+            String keyword,
+            Integer categoryId,
+            Integer brand,
+            Boolean active,
+            Boolean inStock
+    ){
         Pageable pageable = PageRequest.of(number, size);
-        return (keyword != null && !keyword.isEmpty())
-                ? productRepository.findAll(keyword, pageable)
-                : productRepository.findAll(pageable);
+        /*return (keyword != null && !keyword.isEmpty())
+                ? productRepository.searchProducts(categoryId, active, inStock, keyword, pageable)
+                : productRepository.findAll(pageable);*/
+
+        return productRepository.searchProducts(categoryId, active, inStock, keyword, brand, pageable);
     }
 
     public Page<Product> getProductByCategory(Integer categoryId, Integer number, Integer size,
@@ -119,7 +129,10 @@ public class ProductService {
         postProduct.setId(prevProduct.getId());
         postProduct.setInStock(postProduct.getStock() > 0);
         postProduct.setCreatedAt(prevProduct.getCreatedAt());
+        postProduct.setRating(prevProduct.getRating());
+        postProduct.setSalesNumber(prevProduct.getSalesNumber());
         postProduct.setUpdatedAt(new Date());
+        postProduct.setImage(prevProduct.getImage());
 
         if(image != null) {
             String folderName = "products-image/" + id;

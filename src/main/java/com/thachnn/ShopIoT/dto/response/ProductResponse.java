@@ -28,12 +28,14 @@ public class ProductResponse {
 
     Double rating;
 
+    String slug;
     String sku;
     Integer stock;
+    Integer salesNumber;
     boolean active;
 
-    String category;
-    String brand;
+    JsonNode category;
+    JsonNode brand;
 
     String image_url;
     JsonNode productDetails;

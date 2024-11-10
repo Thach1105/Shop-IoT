@@ -3,8 +3,10 @@ package com.thachnn.ShopIoT.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.thachnn.ShopIoT.dto.request.ProductRequest;
 import com.thachnn.ShopIoT.dto.response.ProductResponse;
+import com.thachnn.ShopIoT.dto.response.ProductResponseSimple;
 import com.thachnn.ShopIoT.model.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -25,10 +27,15 @@ public interface ProductMapper {
     Product toProduct(ProductRequest request);
 
     @Mapping(target = "image_url", expression = "java(getImageURL(product))")
-    @Mapping(target = "category", expression = "java(categoryName(product))")
-    @Mapping(target = "brand", expression = "java(brandName(product))")
+    @Mapping(target = "category", expression = "java(buildCategory(product))")
+    @Mapping(target = "brand", expression = "java(buildBrand(product))")
     @Mapping(target = "productDetails", expression = "java(convertStringToJSON(product))")
     ProductResponse toProductResponse(Product product);
+
+    @Mapping(target = "image_url", expression = "java(getImageURL(product))")
+    @Mapping(target = "category", expression = "java(buildCategory(product))")
+    @Mapping(target = "brand", expression = "java(buildBrand(product))")
+    ProductResponseSimple toProductResponseSimple(Product product);
 
     default String convertJsonToString(ProductRequest request){
         //convert Map<String, Object> productDetails to JSON
@@ -42,16 +49,27 @@ public interface ProductMapper {
         }
     }
 
-    default String categoryName(Product product){
-        return product.getCategory() != null
-                ? product.getCategory().getName()
-                : null;
+    default JsonNode buildCategory(Product product){
+
+        if(product.getCategory() != null) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode category = objectMapper.createObjectNode();
+            category.put("id", product.getCategory().getId());
+            category.put("name", product.getCategory().getName());
+            return category;
+        }
+        return null;
     }
 
-    default String brandName(Product product){
-        return product.getBrand() != null
-                ? product.getBrand().getName()
-                : null;
+    default JsonNode buildBrand(Product product){
+        if(product.getBrand() != null) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode brand = objectMapper.createObjectNode();
+            brand.put("id", product.getBrand().getId());
+            brand.put("name", product.getBrand().getName());
+            return brand;
+        }
+        return null;
     }
 
     default JsonNode convertStringToJSON(Product product) {
