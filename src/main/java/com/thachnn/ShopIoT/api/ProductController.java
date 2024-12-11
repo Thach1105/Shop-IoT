@@ -65,6 +65,19 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<?> getProductBySlug(@PathVariable String slug){
+
+        Product product = productService.getProductBySlug(slug);
+
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .content(productMapper.toProductResponse(product))
+                .build();
+
+        return ResponseEntity.ok().body(apiResponse);
+    }
+
     @GetMapping() /*checked*/
     public ResponseEntity<?> getAllProduct(
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
@@ -99,12 +112,16 @@ public class ProductController {
             @RequestParam(name = "category", required = false) Integer categoryId,
             @RequestParam(name = "brand", required = false) Integer brandId,
             @RequestParam(name = "active", required = false) Boolean active,
-            @RequestParam(name = "inStock", required = false) Boolean inStock
+            @RequestParam(name = "inStock", required = false) Boolean inStock,
+            @RequestParam(name = "minPrice", defaultValue = "0")Long minPrice,
+            @RequestParam(name = "maxPrice", defaultValue = "1000000000")Long maxPrice,
+            @RequestParam(name = "sortField", required = false) String sortField
     ){
 
         Page<Product> productPage =
-                productService.search(number-1, size, keyword, categoryId, brandId, active, inStock);
-        System.out.println(productPage.getContent());
+                productService.search(
+                        number-1, size, keyword, categoryId, brandId, active, inStock, sortField, minPrice, maxPrice);
+
         PageInfo pageInfo = PageInfo.builder()
                 .page(productPage.getNumber()+1)
                 .size(productPage.getSize())
@@ -129,9 +146,10 @@ public class ProductController {
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
             @RequestParam(name = "number", defaultValue = PAGE_NUMBER) Integer number,
             @RequestParam(name = "minPrice", defaultValue = "0")Long minPrice,
-            @RequestParam(name = "maxPrice", defaultValue = "1000000000")Long maxPrice
+            @RequestParam(name = "maxPrice", defaultValue = "1000000000")Long maxPrice,
+            @RequestParam(name = "sortField", required = false) String sortField
     ){
-        Page<Product> productPage = productService.getProductByCategory(id,number-1, size, minPrice, maxPrice);
+        Page<Product> productPage = productService.getProductByCategory(id,number-1, size, minPrice, maxPrice, sortField);
         PageInfo pageInfo = PageInfo.builder()
                 .page(productPage.getNumber()+1)
                 .size(productPage.getSize())
