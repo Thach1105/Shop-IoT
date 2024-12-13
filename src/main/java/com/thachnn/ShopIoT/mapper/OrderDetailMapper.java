@@ -24,6 +24,7 @@ public interface OrderDetailMapper {
         Product product = orderDetail.getProduct();
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode jsonObject = objectMapper.createObjectNode();
+        jsonObject.put("productId", product.getId());
         jsonObject.put("productName", product.getName());
         jsonObject.put("imageUrl", "https://shopiot-files.s3.ap-southeast-1.amazonaws.com/products-image/"
                 + product.getId() + "/" + product.getImage());
