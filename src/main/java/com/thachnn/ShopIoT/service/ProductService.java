@@ -69,6 +69,11 @@ public class ProductService {
                 .orElseThrow(() -> new AppException(ErrorApp.PRODUCT_NOT_FOUND));
     }
 
+    public Product getProductBySlug(String slug){
+        return productRepository.findBySlug(slug)
+                .orElseThrow(() -> new AppException(ErrorApp.PRODUCT_NOT_FOUND));
+    }
+
     public Page<Product> getAll(Integer number, Integer size, String sortBy, String order){
         Sort sort = Sort.by(Sort.Direction.valueOf(order.toUpperCase()),sortBy);
         Pageable pageable = PageRequest.of(number, size, sort);
@@ -83,20 +88,42 @@ public class ProductService {
             Integer categoryId,
             Integer brand,
             Boolean active,
-            Boolean inStock
+            Boolean inStock,
+            String sortField,
+            Long minPrice,
+            Long maxPrice
     ){
-        Pageable pageable = PageRequest.of(number, size);
+        Sort sort = Sort.unsorted();
+        if(sortField != null && !sortField.isEmpty()){
+            String[] sortParts = sortField.split("_");
+            String fieldName = sortParts[0];
+            String direction = sortParts[1].toUpperCase();
+            sort = Sort.by(Sort.Direction.valueOf(direction), fieldName);
+        }
+        Pageable pageable = PageRequest.of(number, size, sort);
+
         /*return (keyword != null && !keyword.isEmpty())
                 ? productRepository.searchProducts(categoryId, active, inStock, keyword, pageable)
                 : productRepository.findAll(pageable);*/
 
-        return productRepository.searchProducts(categoryId, active, inStock, keyword, brand, pageable);
+        return productRepository.searchProducts(
+                categoryId, active, inStock, keyword, brand, minPrice, maxPrice, pageable);
     }
 
     public Page<Product> getProductByCategory(Integer categoryId, Integer number, Integer size,
-                                              Long minPrice, Long maxPrice){
+                                              Long minPrice, Long maxPrice, String sortField){
         Category category = categoryService.getById(categoryId);
-        Pageable pageable = PageRequest.of(number, size);
+
+        Sort sort = Sort.unsorted();
+        if(sortField != null && !sortField.isEmpty()){
+            String[] sortParts = sortField.split("_");
+            String fieldName = sortParts[0];
+            String direction = sortParts[1].toUpperCase();
+
+            sort = Sort.by(Sort.Direction.valueOf(direction), fieldName);
+        }
+
+        Pageable pageable = PageRequest.of(number, size, sort);
         return productRepository.findAllWithCategoryId(category.getId(), minPrice, maxPrice, pageable);
     }
 
@@ -156,6 +183,14 @@ public class ProductService {
         Product product = getSingleProduct(id);
 
         product.setStock(product.getStock() + quantity);
+        return productRepository.save(product);
+    }
+
+    public Product subStock(Long id, Integer quantity){
+        Product product = getSingleProduct(id);
+        int stock = product.getStock() - quantity;
+
+        product.setStock(stock);
         return productRepository.save(product);
     }
 }
