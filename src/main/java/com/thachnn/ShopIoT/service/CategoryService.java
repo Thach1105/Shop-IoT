@@ -26,6 +26,11 @@ public class CategoryService {
                 orElseThrow(() -> new AppException(ErrorApp.CATEGORY_NOT_FOUND));
     }
 
+    public Category getBySlug(String slug){
+        return categoryRepository.findBySlug(slug).
+                orElseThrow(() -> new AppException(ErrorApp.CATEGORY_NOT_FOUND));
+    }
+
     public List<Category> getAll(){
         return categoryRepository.findAll();
     }
@@ -57,6 +62,7 @@ public class CategoryService {
         prevCategory.setName(request.getName());
         prevCategory.setDescription(request.getDescription());
         prevCategory.setEnabled(request.isEnabled());
+        prevCategory.setSlug(request.getSlug());
 
         Category parent;
         if(request.getParent() != null){
