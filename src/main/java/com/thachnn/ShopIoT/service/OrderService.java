@@ -1,5 +1,7 @@
 package com.thachnn.ShopIoT.service;
 
+import com.thachnn.ShopIoT.dto.request.CheckPrevOrderRequest;
+import com.thachnn.ShopIoT.dto.request.NotificationNewOrderRequest;
 import com.thachnn.ShopIoT.dto.request.OrderDetailRequest;
 import com.thachnn.ShopIoT.dto.request.OrderRequest;
 import com.thachnn.ShopIoT.exception.AppException;
@@ -12,6 +14,7 @@ import com.thachnn.ShopIoT.repository.OrderStatusRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,7 @@ public class OrderService {
 
     private final OrderStatusRepository orderStatusRepository;
     private final ProductService productService;
+    private final NotificationNewOrderService notificationNewOrderService;
     private final UserService userService;
     private final OrderMapper orderMapper;
     private final OrderDetailMapper orderDetailMapper;
@@ -36,7 +40,8 @@ public class OrderService {
             UserService userService,
             OrderMapper orderMapper,
             OrderDetailMapper orderDetailMapper,
-            OrderRepository orderRepository
+            OrderRepository orderRepository,
+            NotificationNewOrderService notificationNewOrderService
     ){
         this.orderRepository = orderRepository;
         this.productService = productService;
@@ -44,6 +49,7 @@ public class OrderService {
         this.orderMapper = orderMapper;
         this.orderDetailMapper = orderDetailMapper;
         this.orderStatusRepository = orderStatusRepository;
+        this.notificationNewOrderService = notificationNewOrderService;
     }
 
     @PreAuthorize("hasRole('USER')")
@@ -58,9 +64,21 @@ public class OrderService {
 
         Order newOrder = orderMapper.toOrder(orderReq);
 
+        List<CheckPrevOrderRequest.PrevOrder> prevOrderList = detailReqList.stream().map(
+                detailReq -> {
+                    CheckPrevOrderRequest.PrevOrder prevOrder = new CheckPrevOrderRequest.PrevOrder();
+                    prevOrder.setProductId(detailReq.getProduct());
+                    prevOrder.setQuantity(detailReq.getQuantity());
+                    return prevOrder;
+                }
+        ).toList();
+        checkPreviousOrder(prevOrderList);
+
         List<OrderDetail> detailList = detailReqList.stream().map(
                 detailReq -> {
                     Product product = productService.getSingleProduct(detailReq.getProduct());
+                    product.setSalesNumber(product.getSalesNumber() + detailReq.getQuantity());
+                    productService.subStock(product.getId(), detailReq.getQuantity());
 
                     OrderDetail detail = orderDetailMapper.toOrderDetail(detailReq);
                     detail.setOrder(newOrder);
@@ -73,12 +91,21 @@ public class OrderService {
         newOrder.setUser(user);
         newOrder.setOrderDetailList(detailList);
 
-        return orderRepository.save(newOrder);
+        var returnOrder = orderRepository.save(newOrder);
+
+        notificationNewOrderService.createNotification(
+                NotificationNewOrderRequest.builder()
+                        .orderCode(returnOrder.getOrderCode())
+                        .message("Bạn có đơn hàng mới")
+                        .build());
+
+        return  returnOrder;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     public Page<Order> getAll(Integer pageNumber, Integer pageSize){
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Sort sort = Sort.by(Sort.Direction.DESC, "orderTime");
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
         return orderRepository.findAll(pageable);
     }
 
@@ -95,6 +122,20 @@ public class OrderService {
         int check = orderRepository.updateOrderPaymentStatus(orderCode, paymentStatus);
         if(check == 1) return getOrderByCode(orderCode);
         else throw new AppException(ErrorApp.CHANGE_STATUS_FAILED);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    public boolean checkPreviousOrder(List<CheckPrevOrderRequest.PrevOrder> listProduct){
+        for(var i : listProduct){
+            Product p = productService.getSingleProduct(i.getProductId());
+            if(p.getStock() < i.getQuantity()) {
+                throw new AppException(
+                        ErrorApp.PRODUCT_STOCK_NOT_NULL,
+                        String.format("Sản phẩm %s không đủ số lượng cần mua trong kho", p.getName()));
+            }
+        }
+
+        return true;
     }
 
     public void changPaymentStatus(Order order, boolean paymentStatus){
@@ -151,5 +192,25 @@ public class OrderService {
     @PreAuthorize("#username == principal.claims['data']['username']")
     public List<Order> getMyOrder(String username){
         return orderRepository.getAllOrderByUser(username);
+    }
+
+    @PreAuthorize("#username == principal.claims['data']['username']")
+    public Order cancelOrder(String orderCode, String username){
+        OrderStatus cancelStatus = orderStatusRepository.findById(5).orElseThrow();
+        List<Order> orders = orderRepository.getAllOrderByUser(username);
+
+        for(var o : orders){
+            if(o.getOrderCode().equals(orderCode)){
+                if((o.getOrderStatus().getId() == 1 || o.getOrderStatus().getId() == 2) && !o.isPaymentStatus()){
+                    o.setOrderStatus(cancelStatus);
+                    return orderRepository.save(o);
+                } else
+                {
+                    throw new AppException(ErrorApp.ORDER_NOT_CANCEL);
+                }
+            }
+        }
+
+        throw new AppException(ErrorApp.ACCESS_DENIED);
     }
 }
