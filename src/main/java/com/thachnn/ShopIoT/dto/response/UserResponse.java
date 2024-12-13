@@ -14,6 +14,7 @@ public class UserResponse {
     Integer id;
     String username;
     String fullName;
+    String sex;
     String email;
     String phoneNumber;
     LocalDate dob;
