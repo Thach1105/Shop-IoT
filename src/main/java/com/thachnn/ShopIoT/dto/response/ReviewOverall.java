@@ -14,7 +14,7 @@ import java.util.Date;
 @Setter
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@JsonInclude(JsonInclude.Include.NON_NULL)
+/*@JsonInclude(JsonInclude.Include.NON_NULL)*/
 public class ReviewOverall {
     Long productId;
     Long totalReviews;
