@@ -20,6 +20,8 @@ public class UpdateUserRequest {
 
     @Email(message = "EMAIL_INVALID")
     String email;
+
     String phoneNumber;
+    String sex;
     LocalDate dob;
 }
