@@ -26,6 +26,7 @@ public class Order {
 
     @Column(length = 256, nullable = false)
     String address;
+    boolean homeDelivery;
 
     boolean paymentStatus;
     String paymentType;
@@ -41,6 +42,10 @@ public class Order {
     @JoinColumn(name = "user_id")
     User user;
 
+    @JoinColumn(nullable = false)
+    String consigneeName;
+
+    @JoinColumn(nullable = false)
     String phone;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "order")
