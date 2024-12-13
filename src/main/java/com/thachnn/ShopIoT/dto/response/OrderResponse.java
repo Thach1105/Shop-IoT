@@ -24,7 +24,9 @@ public class OrderResponse {
 
     //user information
     String fullName;
+    String consigneeName;
     String address;
+    boolean homeDelivery;
     String phone;
     String email;
 
