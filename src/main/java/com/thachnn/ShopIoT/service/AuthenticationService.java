@@ -101,6 +101,7 @@ public class AuthenticationService {
         dataUser.put("id", user.getId());
         dataUser.put("username", user.getUsername());
         dataUser.put("email", user.getEmail());
+        dataUser.put("fullName", user.getFullName());
 
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
