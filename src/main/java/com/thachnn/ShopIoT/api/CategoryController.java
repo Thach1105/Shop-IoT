@@ -76,6 +76,20 @@ public class CategoryController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
+    @GetMapping("/category-slug/{slug}") /*checked*/
+    public ResponseEntity<?> getBySlug(@PathVariable String slug){
+        System.out.println(slug);
+        Category category = categoryService.getBySlug(slug);
+        CategoryResponse categoryResponse = categoryMapper.toCategoryResponse(category);
+
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .content(categoryResponse)
+                .build();
+
+        return ResponseEntity.ok().body(apiResponse);
+    }
+
     @PutMapping("/{id}") /*checked*/
     public ResponseEntity<?> update(
             @PathVariable Integer id,
