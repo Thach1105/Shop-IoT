@@ -39,5 +39,8 @@ public class User {
     @Column(length = 32)
     String phoneNumber;
 
+    @Column(length = 3)
+    String sex;
+
     LocalDate dob;
 }
