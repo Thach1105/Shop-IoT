@@ -45,7 +45,8 @@ public class VNPayService {
 
     public String createPaymentByVnPay(String orderCode) throws ServletException, IOException {
         Order order = orderService.getOrderByCode(orderCode);
-        if (order.isPaymentStatus()) throw new AppException(ErrorApp.PAID_ORDER);
+        if (order.isPaymentStatus() || order.getOrderStatus().getId() == 5)
+            throw new AppException(ErrorApp.PAID_ORDER);
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
@@ -147,7 +148,7 @@ public class VNPayService {
         return VNPayConfig.vnp_PayUrl + "?" + queryUrl;
     }
 
-    public ObjectNode checksum(HttpServletRequest request) {
+    public ObjectNode callback(HttpServletRequest request) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode vnPayResponse = objectMapper.createObjectNode();
 
@@ -277,5 +278,38 @@ public class VNPayService {
             resultJsonStr.append(line);
         }
         return resultJsonStr.toString();
+    }
+
+    public boolean checksum(HttpServletRequest request){
+        //Begin process return from VNPAY
+        Map fields = new HashMap();
+        for (Enumeration params = request.getParameterNames(); params.hasMoreElements();) {
+            String fieldName = (String) params.nextElement();
+            String fieldValue = !fieldName.equals("vnp_OrderInfo")
+                    ? request.getParameter(fieldName)
+                    : request.getParameter(fieldName).replaceAll(" ", "+");
+            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                if(!fieldName.equals("paymentType")){
+                    fields.put(fieldName, fieldValue);
+                    System.out.println(String.format("%s: %s", fieldName, fieldValue));
+                }
+            }
+        }
+
+        String vnp_SecureHash = request.getParameter("vnp_SecureHash");
+        if (fields.containsKey("vnp_SecureHashType")) {
+            fields.remove("vnp_SecureHashType");
+        }
+        if (fields.containsKey("vnp_SecureHash")) {
+            fields.remove("vnp_SecureHash");
+        }
+
+        String signValue = VNPayUtil.hashAllFields(fields);
+        System.out.println(signValue);
+        if(signValue.equals(vnp_SecureHash)){
+            return true;
+        } else {
+            return false;
+        }
     }
 }
