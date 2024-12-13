@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 @Slf4j
@@ -28,7 +30,7 @@ import java.util.Map;
 public class PaymentController {
 
     @Autowired
-    VNPayService VNPayService;
+    VNPayService vnpayService;
 
     @Autowired
     ZaloPayService zaloPayService;
@@ -39,7 +41,7 @@ public class PaymentController {
     ) throws ServletException, IOException {
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
-                .content(VNPayService.createPaymentByVnPay(orderCode))
+                .content(vnpayService.createPaymentByVnPay(orderCode))
                 .build();
 
         return ResponseEntity.ok(apiResponse);
@@ -59,14 +61,58 @@ public class PaymentController {
             HttpServletRequest request
     ) throws UnsupportedEncodingException {
 
-        ObjectNode objectNode = VNPayService.checksum(request);
+        ObjectNode objectNode = vnpayService.callback(request);
         return ResponseEntity.ok(objectNode);
     }
 
-    /*@PostMapping("/vn-pay/query-order")
-    public ResponseEntity<?> queryOrderVnPay(){
-        @RequestBody
-    }*/
+
+    @GetMapping("/redirect-from-vnpay")
+    public ResponseEntity<?> checksumRedirect(
+            @AuthenticationPrincipal Jwt jwt,
+            HttpServletRequest request
+    ){
+        boolean flag = vnpayService.checksum(request);
+        if(!flag) {
+            return ResponseEntity.badRequest()
+                    .body(
+                            ApiResponse.builder()
+                                    .success(false)
+                                    .message("Checksum failed")
+                                    .build()
+                    );
+        } else {
+            return ResponseEntity.ok(
+                    ApiResponse.builder()
+                            .success(true)
+                            .message("Checksum successful")
+                            .build()
+            );
+        }
+    }
+
+    @GetMapping("/redirect-from-zalopay")
+    public ResponseEntity<?> checksumZalopay(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam Map<String, String> data
+    ) throws NoSuchAlgorithmException, InvalidKeyException {
+        boolean flag = zaloPayService.checksum(data);
+        if(!flag) {
+            return ResponseEntity.badRequest()
+                    .body(
+                            ApiResponse.builder()
+                                    .success(false)
+                                    .message("Checksum failed")
+                                    .build()
+                    );
+        } else {
+            return ResponseEntity.ok(
+                    ApiResponse.builder()
+                            .success(true)
+                            .message("Checksum successful")
+                            .build()
+            );
+        }
+    }
 
     @GetMapping("/zalo-pay/pay-order/{orderCode}")
     public ResponseEntity<?> createPaymentByZaloPay(
