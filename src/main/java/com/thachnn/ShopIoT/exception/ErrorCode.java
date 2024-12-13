@@ -16,6 +16,7 @@ public enum ErrorCode {
     ERROR_REVIEW(1009, "Review error"),
     ERROR_CART(1010, "Cart error"),
     ERROR_PAYMENT(1011, "Payment error"),
+    ERROR_SOLUTION(1012, "Solution error")
 ;
     private final Integer code;
     private final String note;
