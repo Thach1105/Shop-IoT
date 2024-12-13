@@ -34,7 +34,7 @@ public interface CartMapper {
         ObjectMapper objectMapper = new ObjectMapper();
         List<JsonNode> items = new ArrayList<>();
 
-        Set<CartItem> cartItems = cart.getItems();
+        List<CartItem> cartItems = cart.getItems().reversed();
         if(cartItems != null){
             for(var i : cartItems){
                 ObjectNode objectNode = objectMapper.createObjectNode();
@@ -45,6 +45,8 @@ public interface CartMapper {
                 objectNode.put("unitCost", i.getProduct().getCost());
                 objectNode.put("quantity", i.getQuantity());
                 objectNode.put("total", i.getCost());
+                objectNode.put("image", "https://shopiot-files.s3.ap-southeast-1.amazonaws.com/products-image/"
+                        + i.getProduct().getId() + "/" + i.getProduct().getImage());
 
                 items.add(objectNode);
             }
