@@ -30,6 +30,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 
@@ -40,13 +42,18 @@ public class ZaloPayService {
     @Autowired
     OrderService orderService;
 
+    private final String redirectURL =
+            "https://6411-2401-d800-376-844f-7160-ec90-3f10-f9a1.ngrok-free.app/thanh-toan?paymentType=ZALOPAY";
+
+
     public String createOrder(String orderCode, String app_user) throws IOException {
         Order order = orderService.getOrderByCode(orderCode);
-        if (order.isPaymentStatus()) throw new AppException(ErrorApp.PAID_ORDER);
+        if (order.isPaymentStatus() || order.getOrderStatus().getId() == 5)
+            throw new AppException(ErrorApp.PAID_ORDER);
 
         final Map<String, Object> embed_data = new HashMap<>() {{
             put("preferred_payment_method", new ArrayList<>());
-            put("redirecturl", "https://www.t1.gg/");
+            put("redirecturl", redirectURL);
         }};
 
         final JSONArray item = new JSONArray();
@@ -55,7 +62,7 @@ public class ZaloPayService {
             JSONObject itemObject = new JSONObject();
 
             itemObject.put("id", i.getProduct().getId());
-            itemObject.put("product_name", i.getProduct().getName());
+            itemObject.put("product_name", i.getProduct().getSku());
             itemObject.put("quantity", i.getQuantity());
             itemObject.put("price", i.getTotalPrice());
 
@@ -81,9 +88,9 @@ public class ZaloPayService {
         orderParams.put("item", item.toString());
         orderParams.put("embed_data", new JSONObject(embed_data).toString());
         orderParams.put("phone", order.getPhone());
-        orderParams.put("address", order.getAddress());
-        String callbackUrl = "https://e475-2402-800-61c7-879e-e86a-954f-df60-83c4.ngrok-free.app/shopIoT/api";
-        orderParams.put("callback_url", callbackUrl + "/payment/zalo-pay/call-back");
+//        orderParams.put("address", order.getAddress());
+        String callbackURL = "https://61b7-2402-800-61c7-c589-993e-f03c-5aa4-e574.ngrok-free.app/shopIoT/api";
+        orderParams.put("callback_url", callbackURL + "/payment/zalo-pay/call-back");
 
         // app_id +”|”+ app_trans_id +”|”+ appuser +”|”+ amount +"|" + app_time +”|”+ embed_data +"|" +item
         String data = orderParams.get("app_id") + "|"
@@ -155,6 +162,27 @@ public class ZaloPayService {
         }
 
         return result;
+    }
+    public boolean checksum(Map<String, String> data) throws NoSuchAlgorithmException, InvalidKeyException {
+        Mac hmacSHA256 = Mac.getInstance("HmacSHA256");
+        hmacSHA256.init(new SecretKeySpec(ZaloPayConfig.key2.getBytes(), "HmacSHA256"));
+
+        String checksumData = data.get("appid") + "|" +
+                data.get("apptransid") + "|" +
+                data.get("pmcid") + "|" +
+                data.get("bankcode") + "|" +
+                data.get("amount") + "|" +
+                data.get("discountamount") + "|" +
+                data.get("status");
+        byte[] checksumBytes = hmacSHA256.doFinal(checksumData.getBytes());
+        String checksum = DatatypeConverter.printHexBinary(checksumBytes).toLowerCase();
+
+        if (!checksum.equals(data.get("checksum"))) {
+            return false;
+        } else {
+            // kiểm tra xem đã nhận được callback hay chưa, nếu chưa thì tiến hành gọi API truy vấn trạng thái thanh toán của đơn hàng để lấy kết quả cuối cùng
+            return true;
+        }
     }
 
     public String checkOrderStatus(String app_trans_id)
