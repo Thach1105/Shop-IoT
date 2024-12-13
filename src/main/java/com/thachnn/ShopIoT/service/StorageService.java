@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -30,6 +31,7 @@ public class StorageService {
     private S3Client s3Client;
 
     // upload file to aws s3, if it is folder then folder name is "folder1/folder2"
+    @PreAuthorize("hasRole('ADMIN')")
     public String uploadFileToS3(MultipartFile multipartFile, String folderName){
        try {
            String s3Key = multipartFile.getOriginalFilename();
@@ -56,6 +58,7 @@ public class StorageService {
        return null;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteFile(String fileName){
 
         DeleteObjectRequest deleteOb = DeleteObjectRequest
