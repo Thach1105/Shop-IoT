@@ -39,9 +39,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     boolean existsByTransactionId(String transactionId);
 
-    @Query("SELECT o FROM Order o WHERE o.user.username = ?1")
+    @Query("SELECT o FROM Order o WHERE o.user.username = ?1 ORDER BY o.orderTime DESC")
     List<Order> getAllOrderByUser(String username);
 
-    @Query("SELECT o FROM Order o WHERE o.user.id = ?1")
+    @Query("SELECT o FROM Order o WHERE o.user.id = ?1 ORDER BY o.orderTime DESC")
     Page<Order> getAllOrderByUserId(Integer userId, Pageable pageable);
 }
