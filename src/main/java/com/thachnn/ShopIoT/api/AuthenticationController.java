@@ -10,6 +10,7 @@ import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.AuthenticationResponse;
 import com.thachnn.ShopIoT.dto.response.IntrospectResponse;
 import com.thachnn.ShopIoT.service.AuthenticationService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,10 +25,10 @@ public class AuthenticationController {
     private AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequest request){
+    public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequest request, HttpSession session){
 
         AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
-
+        session.setAttribute("token", authenticationResponse.getToken());
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
                 .content(authenticationResponse)
