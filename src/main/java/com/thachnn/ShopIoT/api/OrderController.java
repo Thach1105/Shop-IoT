@@ -1,5 +1,6 @@
 package com.thachnn.ShopIoT.api;
 import com.thachnn.ShopIoT.dto.request.ChangStatusRequest;
+import com.thachnn.ShopIoT.dto.request.CheckPrevOrderRequest;
 import com.thachnn.ShopIoT.dto.request.OrderRequest;
 import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.OrderDetailResponse;
@@ -67,7 +68,7 @@ public class OrderController {
         Order order = orderService.createNewOrder(request,userId);
         OrderResponse orderResponse = this.orderToOrderResponse(order);
         
-        messagingTemplate.convertAndSend("/topic/admin", orderResponse);
+        messagingTemplate.convertAndSend("/topic/admin", orderResponse.getOrderCode());
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -75,6 +76,24 @@ public class OrderController {
                 .build();
 
         return ResponseEntity.ok().body(apiResponse);
+    }
+
+    @PostMapping("/checkPreOrder")
+    public ResponseEntity<?> checkAndLockProduct(
+            @RequestBody CheckPrevOrderRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ){
+        boolean check = orderService.checkPreviousOrder(request.getPrevOrderList());
+
+        if(check) {
+            ApiResponse<?> apiResponse = ApiResponse.builder()
+                    .success(true)
+                    .content("Check trước khi đặt hàng thành công")
+                    .build();
+            return ResponseEntity.ok().body(apiResponse);
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/code/{orderCode}")
@@ -193,6 +212,22 @@ public class OrderController {
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
                 .content(orderResponses)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PutMapping("/my-order/cancel/{orderCode}")
+    public ResponseEntity<?> getMyOrder(
+            @PathVariable("orderCode") String orderCode,
+            @AuthenticationPrincipal Jwt jwt
+    ){
+        String username = (String) jwt.getClaimAsMap("data").get("username");
+        OrderResponse orderResponse = this.orderToOrderResponse(orderService.cancelOrder(orderCode, username));
+
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .content(orderResponse)
                 .build();
 
         return ResponseEntity.ok(apiResponse);
