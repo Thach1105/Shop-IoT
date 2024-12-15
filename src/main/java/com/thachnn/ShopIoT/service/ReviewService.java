@@ -45,6 +45,7 @@ public class ReviewService {
             throw new AppException(ErrorApp.REVIEW_PRODUCT_EXISTED);
 
         Review review = reviewMapper.toReview(request);
+
         review.setUser(user);
         review.setProduct(product);
 
@@ -70,8 +71,9 @@ public class ReviewService {
         }
 
         return ReviewOverall.builder()
+                .productId(productId)
                 .totalReviews(totalReview)
-                .averageRating(average)
+                .averageRating(average == null ? Double.parseDouble("0") : average)
                 .detail(detail)
                 .build();
     }
@@ -104,7 +106,7 @@ public class ReviewService {
         if(!review.getUser().getUsername().equals(username))
             throw new AppException(ErrorApp.ACCESS_DENIED);
 
-        review.setComment(review.getComment());
+        review.setComment(request.getComment());
         review.setRating(request.getRating());
 
         return reviewRepository.save(review);
