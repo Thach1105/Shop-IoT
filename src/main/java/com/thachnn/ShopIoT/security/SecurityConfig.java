@@ -31,7 +31,8 @@ public class SecurityConfig {
             "/auth/login", "/auth/logout", "/auth/refresh", "/auth/introspect",
             "/auth/oauth/authorization/google",
             "/ws",
-            "/payment/vn-pay/IPN", "/payment/zalo-pay/call-back"
+            "/payment/vn-pay/IPN", "/payment/zalo-pay/call-back",
+
     };
 
     @Autowired
@@ -39,12 +40,18 @@ public class SecurityConfig {
 
     @Bean
     public CorsFilter corsFilter() {
+        List<String> ALLOWED_ORIGINS = List.of(
+                "http://localhost:5173",
+                "https://shop-iot-fe.vercel.app",
+                "https://6411-2401-d800-376-844f-7160-ec90-3f10-f9a1.ngrok-free.app"
+                );
+
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true); // Cho phép gửi thông tin xác thực như cookie
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173")); // Thêm domain React
+        config.setAllowedOrigins(ALLOWED_ORIGINS); // Thêm domain React
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        //config.setExposedHeaders(List.of("Authorization")); // Cho phép client đọc các header cụ thể
+        config.setExposedHeaders(List.of("Authorization")); // Cho phép client đọc các header cụ thể
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config); // Áp dụng cho tất cả các endpoint
@@ -64,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/brands").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/solutions/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/reviews/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/reviews/overall/{productId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/reviews/forProductByRating/**").permitAll()
@@ -76,7 +84,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.GET,"/ws/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(
