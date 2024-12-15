@@ -13,7 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -57,7 +59,7 @@ public class CartService {
                     .cart(newCart)
                     .build();
 
-            newCart.setItems(Set.of(cartItem));
+            newCart.setItems(List.of(cartItem));
             return cartRepository.save(newCart);
         } else {
             CartItem cartItem =
@@ -102,6 +104,7 @@ public class CartService {
         return getMyCart(username);
     }
 
+    @Transactional
     public String deleteProductFromCart(Long productId, String username){
         Cart cart = getMyCart(username);
         Product product = productService.getSingleProduct(productId);
