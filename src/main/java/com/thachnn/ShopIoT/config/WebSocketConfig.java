@@ -43,8 +43,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:3000");
-        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:3000").withSockJS();
+        registry.addEndpoint("/ws")
+                .setAllowedOrigins("http://localhost:3000", "http://localhost:5173")
+                .withSockJS();
     }
 
     @Override
@@ -56,7 +57,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 // Authenticate user or CONNECT
                 if(accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())){
-
                     //Extract JWT token from header, validate it and extract user authorities
                     var authHeader = accessor.getFirstNativeHeader("Authorization");
                     if(authHeader == null || !authHeader.startsWith("Bearer" + " ")){
@@ -84,12 +84,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         throw new AccessDeniedException("Unauthorized access to destination: " + destination);
                     }
                 }
+
                 return message;
             }
 
             private boolean hasPermission(String destination, JwtAuthenticationToken authenticationToken){
-                if(authenticationToken == null)
+                if(authenticationToken == null){
                     throw new AccessDeniedException(ErrorApp.UNAUTHENTICATION.getMessage());
+                }
 
                 if( destination.equals("/topic/admin")
                 ){
@@ -104,7 +106,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     boolean checkUser = username.equals(
                             (String) authenticationToken.getToken().getClaimAsMap("data").get("username")
                     );
-
                     return checkRole && checkUser;
                 }
 
