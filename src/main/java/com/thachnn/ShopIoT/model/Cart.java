@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "carts", uniqueConstraints = {
@@ -27,5 +25,11 @@ public class Cart {
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CartItem> items = new HashSet<>();
+    private List<CartItem> items = new ArrayList<>();
+
+    public void removeItem(CartItem item){
+        this.items.remove(item);
+    }
 }
+
+
