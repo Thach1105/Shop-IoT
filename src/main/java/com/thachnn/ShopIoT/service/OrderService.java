@@ -4,6 +4,7 @@ import com.thachnn.ShopIoT.dto.request.CheckPrevOrderRequest;
 import com.thachnn.ShopIoT.dto.request.NotificationNewOrderRequest;
 import com.thachnn.ShopIoT.dto.request.OrderDetailRequest;
 import com.thachnn.ShopIoT.dto.request.OrderRequest;
+import com.thachnn.ShopIoT.dto.response.OrderResponse;
 import com.thachnn.ShopIoT.exception.AppException;
 import com.thachnn.ShopIoT.exception.ErrorApp;
 import com.thachnn.ShopIoT.mapper.OrderDetailMapper;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,10 +55,11 @@ public class OrderService {
     }
 
     @PreAuthorize("hasRole('USER')")
-    public Order createNewOrder(OrderRequest orderReq, Integer userId){
+    @Transactional
+    public OrderResponse createNewOrder(OrderRequest orderReq, Integer userId){
 
         // get status PENDING
-        OrderStatus orderStatus = orderStatusRepository.findById(1).orElseThrow();
+        OrderStatus orderStatus = orderStatusRepository.findByStatusName("PENDING").orElseThrow();
         //get user
         User user = userService.getById(userId);
 
@@ -99,7 +102,7 @@ public class OrderService {
                         .message("Bạn có đơn hàng mới")
                         .build());
 
-        return  returnOrder;
+        return orderMapper.toOrderResponse(returnOrder);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

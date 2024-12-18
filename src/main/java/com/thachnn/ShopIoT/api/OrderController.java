@@ -65,8 +65,7 @@ public class OrderController {
         Long userIdLong = (Long) jwt.getClaimAsMap("data").get("id");
         Integer userId = userIdLong != null ? userIdLong.intValue() : null;
 
-        Order order = orderService.createNewOrder(request,userId);
-        OrderResponse orderResponse = this.orderToOrderResponse(order);
+        OrderResponse orderResponse = orderService.createNewOrder(request,userId);
         
         messagingTemplate.convertAndSend("/topic/admin", orderResponse.getOrderCode());
 
