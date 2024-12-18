@@ -1,8 +1,10 @@
 package com.thachnn.ShopIoT.service;
 
 import com.thachnn.ShopIoT.dto.request.BrandRequest;
+import com.thachnn.ShopIoT.dto.response.BrandResponse;
 import com.thachnn.ShopIoT.exception.AppException;
 import com.thachnn.ShopIoT.exception.ErrorApp;
+import com.thachnn.ShopIoT.mapper.BrandMapper;
 import com.thachnn.ShopIoT.model.Brand;
 import com.thachnn.ShopIoT.repository.BrandRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BrandService {
+
+    @Autowired
+    private BrandMapper brandMapper;
 
     @Autowired
     private BrandRepository brandRepository;
@@ -20,7 +26,7 @@ public class BrandService {
     @Autowired
     private StorageService storageService;
 
-    public Brand create(BrandRequest request, MultipartFile logo){
+    public BrandResponse create(BrandRequest request, MultipartFile logo){
         if(brandRepository.existsByName(request.getName())) throw new AppException(ErrorApp.BRAND_EXISTED);
 
         Brand brand = Brand.builder()
@@ -32,11 +38,12 @@ public class BrandService {
         String folderName = "brand-logo/" + newBrand.getId();
         storageService.uploadFileToS3(logo, folderName);
 
-        return newBrand;
+        return brandMapper.toBrandResponse(newBrand);
     }
 
-    public List<Brand> getAll(){
-        return brandRepository.findAll();
+    public List<BrandResponse> getAll(){
+        List<Brand> brandList = brandRepository.findAll();
+        return brandList.stream().map(brandMapper::toBrandResponse).collect(Collectors.toList());
     }
 
     public Brand getById(Integer id){
@@ -44,12 +51,13 @@ public class BrandService {
                 .orElseThrow(() -> new AppException(ErrorApp.BRAND_NOTFOUND));
     }
 
-    public Brand getByName(String name){
-        return brandRepository.findByName(name)
+    public BrandResponse getByName(String name){
+        Brand brand = brandRepository.findByName(name)
                 .orElseThrow(() -> new AppException(ErrorApp.BRAND_NOTFOUND));
+        return brandMapper.toBrandResponse(brand);
     }
 
-    public Brand update(Integer id, BrandRequest request, MultipartFile logo){
+    public BrandResponse update(Integer id, BrandRequest request, MultipartFile logo){
         Brand prevBrand = getById(id);
         prevBrand.setName(request.getName());
         String folderName = "brand-logo/" + id;
@@ -60,7 +68,7 @@ public class BrandService {
             storageService.uploadFileToS3(logo, folderName);
         }
 
-        return brandRepository.save(prevBrand);
+        return brandMapper.toBrandResponse(brandRepository.save(prevBrand));
     }
 
     public void delete(Integer id){

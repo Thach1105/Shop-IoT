@@ -28,15 +28,11 @@ public class BrandController {
     @Autowired
     private BrandMapper brandMapper;
 
-    @PostMapping /*checked*/
+    @PostMapping
     public ResponseEntity<?> create(@Valid @RequestPart("brand") BrandRequest request,
                                     @RequestPart("logo")MultipartFile logo
     ){
-
-        String logoName = StringUtils.cleanPath(Objects.requireNonNull(logo.getOriginalFilename()));
-        Brand newBrand = brandService.create(request, logo);
-        BrandResponse brandResponse = brandMapper.toBrandResponse(newBrand);
-
+        BrandResponse brandResponse = brandService.create(request, logo);
         return ResponseEntity.ok()
                 .body(
                         ApiResponse.builder()
@@ -47,22 +43,20 @@ public class BrandController {
     }
 
 
-    @GetMapping /*checked*/
+    @GetMapping
     public ResponseEntity<?> getBrand(
             @RequestParam(name = "name", required = false) String name
     ){
         if(name != null && !name.isEmpty()){
-            Brand brand = brandService.getByName(name);
+
             ApiResponse<?> apiResponse = ApiResponse.builder()
                     .success(true)
-                    .content(brandMapper.toBrandResponse(brand))
+                    .content(brandService.getByName(name))
                     .build();
 
             return ResponseEntity.ok().body(apiResponse);
         } else {
-            List<Brand> brands = brandService.getAll();
-            List<BrandResponse> brandResponses = brands.stream()
-                    .map(brandMapper::toBrandResponse).toList();
+            List<BrandResponse> brandResponses = brandService.getAll();
 
             ApiResponse<?> apiResponse = ApiResponse.builder()
                     .success(true)
@@ -74,7 +68,7 @@ public class BrandController {
 
     }
 
-    @GetMapping("/{id}") /*checked*/
+    @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable("id")Integer id){
 
         Brand brand = brandService.getById(id);
@@ -86,13 +80,12 @@ public class BrandController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @PutMapping("/{id}") /*checked*/
+    @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable("id")Integer id,
                                     @RequestPart("brand") BrandRequest request,
                                     @RequestPart(name = "logo", required = false) MultipartFile logo
     ){
-        Brand brand = brandService.update(id, request, logo);
-        BrandResponse brandResponse = brandMapper.toBrandResponse(brand);
+        BrandResponse brandResponse = brandService.update(id, request, logo);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -102,7 +95,7 @@ public class BrandController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @DeleteMapping("/{id}") /*checked*/
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable("id") Integer id){
         brandService.delete(id);
         return ResponseEntity.ok().body(ApiResponse.builder()
