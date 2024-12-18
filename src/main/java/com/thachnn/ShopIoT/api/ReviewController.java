@@ -36,8 +36,7 @@ public class ReviewController {
                                     @AuthenticationPrincipal Jwt jwt
     ){
         String username = (String) jwt.getClaimAsMap("data").get("username");
-        Review review = reviewService.createReview(request, username);
-        ReviewResponse reviewResponse = reviewMapper.toReviewResponse(review);
+        ReviewResponse reviewResponse = reviewService.createReview(request, username);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -79,7 +78,7 @@ public class ReviewController {
             @RequestParam(name = "number", defaultValue = SLICE_NUMBER) Integer number,
             @RequestParam(name = "size", defaultValue = SLICE_SIZE) Integer size
     ) {
-        Slice<Review> slice = reviewService.getByProductAndRating(productId, rating, number - 1, size);
+        Slice<ReviewResponse> slice = reviewService.getByProductAndRating(productId, rating, number - 1, size);
         PageInfo pageInfo = PageInfo.builder()
                 .totalElements(slice.getNumberOfElements())
                 .page(slice.getNumber() + 1)
@@ -88,9 +87,7 @@ public class ReviewController {
                 .hasNext(slice.hasNext())
                 .build();
 
-        List<Review> reviews = slice.getContent();
-        List<ReviewResponse> responseList = reviews.stream()
-                .map(reviewMapper::toReviewResponse).toList();
+        List<ReviewResponse> responseList =  slice.getContent();
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -107,8 +104,7 @@ public class ReviewController {
             @AuthenticationPrincipal Jwt jwt
     ){
         String username = (String) jwt.getClaimAsMap("data").get("username");
-       Review review = reviewService.getByUserAndProduct(username, productId);
-       ReviewResponse reviewResponse = reviewMapper.toReviewResponse(review);
+       ReviewResponse reviewResponse = reviewService.getByUserAndProduct(username, productId);
 
        ApiResponse<?> apiResponse = ApiResponse.builder()
                .success(true)
@@ -125,8 +121,7 @@ public class ReviewController {
             @AuthenticationPrincipal Jwt jwt
     ){
         String username = (String) jwt.getClaimAsMap("data").get("username");
-        Review review = reviewService.updateReview(reviewId, request, username);
-        ReviewResponse reviewResponse = reviewMapper.toReviewResponse(review);
+        ReviewResponse reviewResponse = reviewService.updateReview(reviewId, request, username);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)

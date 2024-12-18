@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.thachnn.ShopIoT.dto.request.ReviewRequest;
 import com.thachnn.ShopIoT.dto.response.ReviewOverall;
+import com.thachnn.ShopIoT.dto.response.ReviewResponse;
 import com.thachnn.ShopIoT.exception.AppException;
 import com.thachnn.ShopIoT.exception.ErrorApp;
 import com.thachnn.ShopIoT.mapper.ReviewMapper;
@@ -38,7 +39,7 @@ public class ReviewService {
     ReviewMapper reviewMapper;
 
     @PreAuthorize("hasRole('USER')")
-    public Review createReview(ReviewRequest request, String username){
+    public ReviewResponse createReview(ReviewRequest request, String username){
         User user = userService.getByUsername(username);
         Product product = productService.getSingleProduct(request.getProductId());
         if(existReviewByUserAndProduct(user, product))
@@ -49,7 +50,7 @@ public class ReviewService {
         review.setUser(user);
         review.setProduct(product);
 
-        return reviewRepository.save(review);
+        return reviewMapper.toReviewResponse(reviewRepository.save(review));
     }
 
     public Review getSingleReview(Long id){
@@ -82,25 +83,29 @@ public class ReviewService {
         return reviewRepository.existsByUserAndProduct(user, product);
     }
 
-    public Review getByUserAndProduct(String username, Long productId){
+    public ReviewResponse getByUserAndProduct(String username, Long productId){
         User user = userService.getByUsername(username);
         Product product = productService.getSingleProduct(productId);
 
-        return reviewRepository.findByUserAndProduct(user, product);
+        Review review = reviewRepository.findByUserAndProduct(user, product);
+        return reviewMapper.toReviewResponse(review);
     }
 
-    public Slice<Review> getByProductAndRating(
+    public Slice<ReviewResponse> getByProductAndRating(
             Long productId, Integer rating, Integer number, Integer size
     ){
         Pageable pageable = PageRequest.of(number, size);
+        Slice<Review> reviewSlice;
         if(rating == null){
-            return reviewRepository.findByProduct(productId, pageable);
+            reviewSlice = reviewRepository.findByProduct(productId, pageable);
         } else {
-            return reviewRepository.findByProductAndRating(productId, rating, pageable);
+            reviewSlice = reviewRepository.findByProductAndRating(productId, rating, pageable);
         }
+
+        return reviewSlice.map(reviewMapper::toReviewResponse);
     }
 
-    public Review updateReview(Long id, ReviewRequest request, String username){
+    public ReviewResponse updateReview(Long id, ReviewRequest request, String username){
         Review review = getSingleReview(id);
 
         if(!review.getUser().getUsername().equals(username))
@@ -109,7 +114,7 @@ public class ReviewService {
         review.setComment(request.getComment());
         review.setRating(request.getRating());
 
-        return reviewRepository.save(review);
+        return reviewMapper.toReviewResponse(reviewRepository.save(review));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
