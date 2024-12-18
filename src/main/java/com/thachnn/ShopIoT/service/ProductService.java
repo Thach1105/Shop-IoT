@@ -1,5 +1,7 @@
 package com.thachnn.ShopIoT.service;
 import com.thachnn.ShopIoT.dto.request.ProductRequest;
+import com.thachnn.ShopIoT.dto.response.ProductResponse;
+import com.thachnn.ShopIoT.dto.response.ProductResponseSimple;
 import com.thachnn.ShopIoT.exception.AppException;
 import com.thachnn.ShopIoT.exception.ErrorApp;
 import com.thachnn.ShopIoT.mapper.ProductMapper;
@@ -38,7 +40,8 @@ public class ProductService {
     @Autowired
     private ProductMapper productMapper;
 
-    public Product create(ProductRequest request, MultipartFile image) {
+    // save new product
+    public ProductResponse create(ProductRequest request, MultipartFile image) {
         if(productRepository.existsByName(request.getName()))
             throw new AppException(ErrorApp.PRODUCT_NAME_EXISTED);
 
@@ -60,28 +63,38 @@ public class ProductService {
         newProduct.setInStock(newProduct.getStock() > 0);
         newProduct.setImage(image.getOriginalFilename());
 
-        return productRepository.save(newProduct);
+        newProduct = productRepository.save(newProduct);
+        String folderName = "products-image/" + newProduct.getId();
+        storageService.uploadFileToS3(image, folderName);
+
+        return productMapper.toProductResponse(newProduct);
     }
 
+    // get product by id
     public Product getSingleProduct(Long id){
 
         return productRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorApp.PRODUCT_NOT_FOUND));
     }
 
-    public Product getProductBySlug(String slug){
-        return productRepository.findBySlug(slug)
+    // get product by slug
+    public ProductResponse getProductBySlug(String slug){
+        Product product = productRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(ErrorApp.PRODUCT_NOT_FOUND));
+
+        return productMapper.toProductResponse(product);
     }
 
-    public Page<Product> getAll(Integer number, Integer size, String sortBy, String order){
+    // get all product
+    public Page<ProductResponseSimple> getAll(Integer number, Integer size, String sortBy, String order){
         Sort sort = Sort.by(Sort.Direction.valueOf(order.toUpperCase()),sortBy);
         Pageable pageable = PageRequest.of(number, size, sort);
-
-        return productRepository.findAll(pageable);
+        Page<Product> productPage = productRepository.findAll(pageable);
+        return productPage.map(productMapper::toProductResponseSimple);
     }
 
-    public Page<Product> search(
+    //search
+    public Page<ProductResponseSimple> search(
             Integer number,
             Integer size,
             String keyword,
@@ -102,16 +115,21 @@ public class ProductService {
         }
         Pageable pageable = PageRequest.of(number, size, sort);
 
-        /*return (keyword != null && !keyword.isEmpty())
-                ? productRepository.searchProducts(categoryId, active, inStock, keyword, pageable)
-                : productRepository.findAll(pageable);*/
-
-        return productRepository.searchProducts(
+        Page<Product> productPage = productRepository.searchProducts(
                 categoryId, active, inStock, keyword, brand, minPrice, maxPrice, pageable);
+
+        return productPage.map(productMapper::toProductResponseSimple);
     }
 
-    public Page<Product> getProductByCategory(Integer categoryId, Integer number, Integer size,
-                                              Long minPrice, Long maxPrice, String sortField){
+    //get product by category
+    public Page<ProductResponseSimple> getProductByCategory(
+            Integer categoryId,
+            Integer number,
+            Integer size,
+            Long minPrice,
+            Long maxPrice,
+            String sortField
+    ){
         Category category = categoryService.getById(categoryId);
 
         Sort sort = Sort.unsorted();
@@ -124,17 +142,30 @@ public class ProductService {
         }
 
         Pageable pageable = PageRequest.of(number, size, sort);
-        return productRepository.findAllWithCategoryId(category.getId(), minPrice, maxPrice, pageable);
+        Page<Product> productPage = productRepository.findAllWithCategoryId(
+                category.getId(), minPrice, maxPrice, pageable);
+
+        return productPage.map(productMapper::toProductResponseSimple);
     }
 
-    public Page<Product> getProductByBrand(Integer brandId, Integer number, Integer size,
-                                           Long minPrice, Long maxPrice){
+    // get product by brand
+    public Page<ProductResponseSimple> getProductByBrand(
+            Integer brandId,
+            Integer number,
+            Integer size,
+            Long minPrice,
+            Long maxPrice
+    ){
         Brand brand = brandService.getById(brandId);
         Pageable pageable = PageRequest.of(number, size);
-        return productRepository.findAllWithBrandId(brand.getId(), minPrice, maxPrice, pageable);
+        Page<Product> productPage =
+                productRepository.findAllWithBrandId(brand.getId(), minPrice, maxPrice, pageable);
+
+        return productPage.map(productMapper::toProductResponseSimple);
     }
 
-    public Product update(Long id, ProductRequest request, MultipartFile image){
+    // update product
+    public ProductResponse update(Long id, ProductRequest request, MultipartFile image){
         Product prevProduct = getSingleProduct(id);
 
         if(!request.getName().equals(prevProduct.getName())
@@ -170,27 +201,30 @@ public class ProductService {
             postProduct.setImage(image.getOriginalFilename());
         }
 
-        return productRepository.save(postProduct);
+        return productMapper.toProductResponse(productRepository.save(postProduct));
     }
 
+    //delete product
     public void delete(Long id){
         Product product = getSingleProduct(id);
         storageService.deleteFile("products-image/" + id + product.getImage());
         productRepository.deleteById(id);
     }
 
-    public Product addProductStock(Long id, Integer quantity){
+    // add quantity to product
+    public ProductResponse addProductStock(Long id, Integer quantity){
         Product product = getSingleProduct(id);
 
         product.setStock(product.getStock() + quantity);
-        return productRepository.save(product);
+        return productMapper.toProductResponse(productRepository.save(product));
     }
 
-    public Product subStock(Long id, Integer quantity){
+    // subtract quantity from product
+    public void subStock(Long id, Integer quantity){
         Product product = getSingleProduct(id);
         int stock = product.getStock() - quantity;
 
         product.setStock(stock);
-        return productRepository.save(product);
+        productRepository.save(product);
     }
 }
