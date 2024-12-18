@@ -33,26 +33,23 @@ public class ProductController {
     @Autowired
     private ProductMapper productMapper;
 
-    @PostMapping /*checked*/
+    @PostMapping
     public ResponseEntity<?> create(
             @RequestPart(name = "product")ProductRequest request,
             @RequestPart(name = "image")MultipartFile image
     ){
 
-        Product product = productService.create(request, image);
-
-        String folderName = "products-image/" + product.getId();
-        storageService.uploadFileToS3(image, folderName);
+        ProductResponse productResponse = productService.create(request, image);
         return ResponseEntity.ok()
                 .body(
                         ApiResponse.builder()
                                 .success(true)
-                                .content(productMapper.toProductResponse(product))
+                                .content(productResponse)
                                 .build()
                 );
     }
 
-    @GetMapping("/{id}") /*checked*/
+    @GetMapping("/{id}")
     public ResponseEntity<?> getSingleProduct(@PathVariable Long id){
 
         Product product = productService.getSingleProduct(id);
@@ -68,32 +65,31 @@ public class ProductController {
     @GetMapping("/slug/{slug}")
     public ResponseEntity<?> getProductBySlug(@PathVariable String slug){
 
-        Product product = productService.getProductBySlug(slug);
+        ProductResponse product = productService.getProductBySlug(slug);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
-                .content(productMapper.toProductResponse(product))
+                .content(product)
                 .build();
 
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @GetMapping() /*checked*/
+    @GetMapping()
     public ResponseEntity<?> getAllProduct(
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
             @RequestParam(name = "page", defaultValue = PAGE_NUMBER) Integer number,
             @RequestParam(name = "sortBy", defaultValue = "id")String sortBy,
             @RequestParam(name = "order", defaultValue = "asc")String order
     ){
-        Page<Product> productPage = productService.getAll(number-1, size, sortBy, order);
+        Page<ProductResponseSimple> productPage = productService.getAll(number-1, size, sortBy, order);
         PageInfo pageInfo = PageInfo.builder()
                 .page(productPage.getNumber()+1)
                 .size(productPage.getSize())
                 .totalElements(productPage.getTotalElements())
                 .totalPages(productPage.getTotalPages())
                 .build();
-        List<Product> products = productPage.getContent();
-        List<ProductResponseSimple> responseList = products.stream().map(productMapper::toProductResponseSimple).toList();
+        List<ProductResponseSimple> responseList = productPage.getContent();
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -104,7 +100,7 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @GetMapping("/search") /*checked*/
+    @GetMapping("/search")
     public ResponseEntity<?> search(
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
             @RequestParam(name = "page", defaultValue = PAGE_NUMBER) Integer number,
@@ -118,9 +114,10 @@ public class ProductController {
             @RequestParam(name = "sortField", required = false) String sortField
     ){
 
-        Page<Product> productPage =
+        Page<ProductResponseSimple> productPage =
                 productService.search(
-                        number-1, size, keyword, categoryId, brandId, active, inStock, sortField, minPrice, maxPrice);
+                        number-1, size, keyword, categoryId, brandId,
+                        active, inStock, sortField, minPrice, maxPrice);
 
         PageInfo pageInfo = PageInfo.builder()
                 .page(productPage.getNumber()+1)
@@ -128,8 +125,8 @@ public class ProductController {
                 .totalElements(productPage.getTotalElements())
                 .totalPages(productPage.getTotalPages())
                 .build();
-        List<Product> products = productPage.getContent();
-        List<ProductResponseSimple> responseList = products.stream().map(productMapper::toProductResponseSimple).toList();
+
+        List<ProductResponseSimple> responseList = productPage.getContent();
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -140,7 +137,7 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @GetMapping("/category/{id}") /*checked*/
+    @GetMapping("/category/{id}")
     public ResponseEntity<?> getProductsByACategory(
             @PathVariable Integer id,
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
@@ -149,15 +146,23 @@ public class ProductController {
             @RequestParam(name = "maxPrice", defaultValue = "1000000000")Long maxPrice,
             @RequestParam(name = "sortField", required = false) String sortField
     ){
-        Page<Product> productPage = productService.getProductByCategory(id,number-1, size, minPrice, maxPrice, sortField);
+        Page<ProductResponseSimple> productPage =
+                productService.getProductByCategory(
+                        id,
+                        number-1,
+                        size,
+                        minPrice,
+                        maxPrice,
+                        sortField);
+
         PageInfo pageInfo = PageInfo.builder()
                 .page(productPage.getNumber()+1)
                 .size(productPage.getSize())
                 .totalElements(productPage.getTotalElements())
                 .totalPages(productPage.getTotalPages())
                 .build();
-        List<Product> products = productPage.getContent();
-        List<ProductResponse> responseList = products.stream().map(productMapper::toProductResponse).toList();
+
+        List<ProductResponseSimple> responseList = productPage.getContent();
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -168,7 +173,7 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @GetMapping("/brand/{id}") /*checked*/
+    @GetMapping("/brand/{id}")
     public ResponseEntity<?> getProductsByABrand(
             @PathVariable Integer id,
             @RequestParam(name = "size", defaultValue = PAGE_SIZE) Integer size,
@@ -176,15 +181,17 @@ public class ProductController {
             @RequestParam(name = "minPrice", defaultValue = "0")Long minPrice,
             @RequestParam(name = "maxPrice", defaultValue = "1000000000")Long maxPrice
     ){
-        Page<Product> productPage = productService.getProductByBrand(id,number-1, size, minPrice, maxPrice);
+        Page<ProductResponseSimple> productPage =
+                productService.getProductByBrand(id,number-1, size, minPrice, maxPrice);
+
         PageInfo pageInfo = PageInfo.builder()
                 .page(productPage.getNumber()+1)
                 .size(productPage.getSize())
                 .totalElements(productPage.getTotalElements())
                 .totalPages(productPage.getTotalPages())
                 .build();
-        List<Product> products = productPage.getContent();
-        List<ProductResponse> responseList = products.stream().map(productMapper::toProductResponse).toList();
+
+        List<ProductResponseSimple> responseList = productPage.getContent();
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -195,24 +202,23 @@ public class ProductController {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    @PutMapping("/{id}") /*checked*/
+    @PutMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable Long id,
             @RequestPart("product") ProductRequest request,
             @RequestPart(name = "image", required = false)MultipartFile image
     ){
-        System.out.println(image);
-        Product product = productService.update(id, request, image);
+        ProductResponse productResponse = productService.update(id, request, image);
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
-                .content(productMapper.toProductResponse(product))
+                .content(productResponse)
                 .build();
 
         return ResponseEntity.ok().body(apiResponse);
     }
 
 
-    @DeleteMapping("/{id}") /*checked*/
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id){
 
         productService.delete(id);
@@ -225,16 +231,14 @@ public class ProductController {
                 );
     }
 
-    @PutMapping("/{id}/add-stock") /*checked*/
+    @PutMapping("/{id}/add-stock")
     public ResponseEntity<?> addProductStock(
             @PathVariable("id") Long id,
             @RequestParam("quantity") Integer quantity
     ){
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
-                .content(productMapper.toProductResponse(
-                        productService.addProductStock(id, quantity)
-                ))
+                .content(productService.addProductStock(id, quantity))
                 .build();
         return ResponseEntity.ok().body(apiResponse);
     }
