@@ -1,6 +1,7 @@
 package com.thachnn.ShopIoT.service;
 
 import com.thachnn.ShopIoT.dto.request.CategoryRequest;
+import com.thachnn.ShopIoT.dto.response.CategoryResponse;
 import com.thachnn.ShopIoT.exception.AppException;
 import com.thachnn.ShopIoT.exception.ErrorApp;
 import com.thachnn.ShopIoT.mapper.CategoryMapper;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -26,16 +28,22 @@ public class CategoryService {
                 orElseThrow(() -> new AppException(ErrorApp.CATEGORY_NOT_FOUND));
     }
 
-    public Category getBySlug(String slug){
-        return categoryRepository.findBySlug(slug).
+    public CategoryResponse getBySlug(String slug){
+        Category category = categoryRepository.findBySlug(slug).
                 orElseThrow(() -> new AppException(ErrorApp.CATEGORY_NOT_FOUND));
+
+        return categoryMapper.toCategoryResponse(category);
     }
 
-    public List<Category> getAll(){
-        return categoryRepository.findAll();
+    public List<CategoryResponse> getAll(){
+
+        List<Category> categoryList = categoryRepository.findAll();
+        return categoryList.stream()
+                .map(categoryMapper::toCategoryResponse)
+                .collect(Collectors.toList());
     }
 
-    public Category create(CategoryRequest request){
+    public CategoryResponse create(CategoryRequest request){
 
         Category newCategory = categoryMapper.toCategory(request);
         System.out.println(newCategory);
@@ -48,10 +56,10 @@ public class CategoryService {
             newCategory.setParent(parent);
         }
 
-        return categoryRepository.save(newCategory);
+        return categoryMapper.toCategoryResponse(categoryRepository.save(newCategory));
     }
 
-    public Category update(Integer id, CategoryRequest request){
+    public CategoryResponse update(Integer id, CategoryRequest request){
 
         Category prevCategory = getById(id);
 
@@ -74,7 +82,7 @@ public class CategoryService {
             categoryRepository.updateCategoryStatusAllChildren(id, false);
         }
 
-        return categoryRepository.save(prevCategory);
+        return categoryMapper.toCategoryResponse(categoryRepository.save(prevCategory));
     }
 
     public void delete(Integer id){
@@ -82,21 +90,22 @@ public class CategoryService {
         categoryRepository.deleteById(id);
     }
 
-    public List<Category> getCategoryTree(){
+    public List<CategoryResponse> getCategoryTree(){
 
-        List<Category> categories = getAll();
+        List<Category> categories = categoryRepository.findAll();
         List<Category> result = new ArrayList<>();
 
         for (var c : categories){
             if(c.getParent() == null) result.add(c);
         }
 
-        return result;
+        return result.stream().map(categoryMapper::toCategoryResponse).collect(Collectors.toList());
     }
 
-    public Category getByName(String name){
-        return categoryRepository.findByName(name)
+    public CategoryResponse getByName(String name){
+        Category category = categoryRepository.findByName(name)
                 .orElseThrow(() -> new AppException(ErrorApp.CATEGORY_NOT_FOUND));
+        return  categoryMapper.toCategoryResponse(category);
     }
 
     public int changeStatus(Integer id, boolean status){

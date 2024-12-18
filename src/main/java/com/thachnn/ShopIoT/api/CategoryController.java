@@ -24,9 +24,8 @@ public class CategoryController {
 
     @GetMapping("/all") /*checked*/
     public ResponseEntity<?> getAll(){
-        List<Category> categories = categoryService.getAll();
         List<CategoryResponse> categoryResponseList =
-            categories.stream().map(categoryMapper::toCategoryResponse).toList();
+                categoryService.getAll();
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -41,8 +40,7 @@ public class CategoryController {
             @RequestParam(name = "name", required = false) String name
     ){
         if(name != null){
-            Category category = categoryService.getByName(name);
-            CategoryResponse categoryResp = categoryMapper.toCategoryResponse(category);
+            CategoryResponse categoryResp = categoryService.getByName(name);
             ApiResponse<?> apiResponse = ApiResponse.builder()
                     .success(true)
                     .content(categoryResp)
@@ -50,9 +48,8 @@ public class CategoryController {
 
             return ResponseEntity.ok().body(apiResponse);
         } else {
-            List<Category> categories = categoryService.getCategoryTree();
             List<CategoryResponse> categoryRespList
-                    = categories.stream().map(categoryMapper::toCategoryResponse).toList();
+                    = categoryService.getCategoryTree();
 
             ApiResponse<?> apiResponse = ApiResponse.builder()
                     .success(true)
@@ -78,9 +75,7 @@ public class CategoryController {
 
     @GetMapping("/category-slug/{slug}") /*checked*/
     public ResponseEntity<?> getBySlug(@PathVariable String slug){
-        System.out.println(slug);
-        Category category = categoryService.getBySlug(slug);
-        CategoryResponse categoryResponse = categoryMapper.toCategoryResponse(category);
+        CategoryResponse categoryResponse = categoryService.getBySlug(slug);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -95,10 +90,8 @@ public class CategoryController {
             @PathVariable Integer id,
             @RequestBody CategoryRequest request
     ){
-
-        Category category = categoryService.update(id, request);
         CategoryResponse
-                categoryResponse = categoryMapper.toCategoryResponse(category);
+                categoryResponse = categoryService.update(id, request);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -133,8 +126,7 @@ public class CategoryController {
     @PostMapping /*checked*/
     public ResponseEntity<?> create(@Valid @RequestBody CategoryRequest request){
 
-        Category newCategory = categoryService.create(request);
-        CategoryResponse categoryResponse = categoryMapper.toCategoryResponse(newCategory);
+        CategoryResponse categoryResponse = categoryService.create(request);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
