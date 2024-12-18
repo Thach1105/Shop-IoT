@@ -48,8 +48,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> getUserById(@PathVariable("id") Integer id){
 
-        User user = userService.getById(id);
-        UserResponse userResponse = userMapper.toUserResponse(user);
+        UserResponse userResponse = userMapper.toUserResponse(userService.getById(id));
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -75,10 +74,9 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<?>> getAll(){
+    public ResponseEntity<ApiResponse<?>> getAllUser(){
 
-        List<User> users = userService.getAll();
-        List<UserResponse> list_user = users.stream().map(userMapper::toUserResponse).toList();
+        List<UserResponse> list_user = userService.getAll();
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -95,10 +93,9 @@ public class UserController {
         @RequestParam(name = "sort", required = false) String sortField,
         @RequestParam(name = "keyword", required = false) String keyword
     ){
-        Page<User> page = userService.getPageUser(pageNum-1, pageSize, sortField, keyword);
+        Page<UserResponse> page = userService.getPageUser(pageNum-1, pageSize, sortField, keyword);
 
-        List<User> users = page.getContent();
-        List<UserResponse> list_response = users.stream().map(userMapper::toUserResponse).toList();
+        List<UserResponse> list_response = page.getContent();
 
         PageInfo pageInfo = PageInfo.builder()
                 .page(page.getNumber()+1)
@@ -121,8 +118,7 @@ public class UserController {
             @PathVariable("id") Integer id,
             @Valid @RequestBody UpdateUserRequest request
             ){
-        User postUser = userService.update(id, request);
-        UserResponse userResponse = userMapper.toUserResponse(postUser);
+        UserResponse userResponse = userService.update(id, request);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
@@ -153,7 +149,7 @@ public class UserController {
        userService.delete(id);
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
-                .content("Xóa tài khoản người dùng thành công")
+                .content("User account deleted successfully")
                 .build();
 
         return ResponseEntity.ok().body(apiResponse);
