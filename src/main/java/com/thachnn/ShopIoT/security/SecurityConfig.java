@@ -28,6 +28,10 @@ import java.util.List;
 @Order(1)
 public class SecurityConfig {
     private final String[] ENDPOINTS_PUBLIC = {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/actuator/**",
             "/auth/login", "/auth/logout", "/auth/refresh", "/auth/introspect",
             "/auth/oauth/authorization/google",
             "/ws",
