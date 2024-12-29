@@ -2,11 +2,9 @@ package com.thachnn.ShopIoT.model;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.util.Date;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Entity
 @Table
@@ -16,11 +14,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NotificationNewOrder {
+public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
+    @Column(nullable = false)
+    private Integer sender;
 
     @Column(nullable = false)
     private String orderCode;
@@ -28,12 +29,12 @@ public class NotificationNewOrder {
     @Column(nullable = false)
     private String message;
 
-    private Date createAt;
+    private LocalDateTime timestamp;
 
     private boolean hasViewed;
 
     @PrePersist
     protected void onCreate(){
-        this.createAt = new Date();
+        this.timestamp = LocalDateTime.now();
     }
 }
