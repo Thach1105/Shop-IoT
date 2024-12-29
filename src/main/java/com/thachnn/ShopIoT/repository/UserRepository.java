@@ -24,4 +24,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             "OR u.email LIKE %?1% " +
             "OR u.phoneNumber LIKE %?1%")
     Page<User> findAllUser(String keyword, Pageable pageable);
+
+    @Query("SELECT COUNT(u) FROM User u " +
+            "WHERE u.role.name = 'USER'")
+    long countCustomer();
 }
