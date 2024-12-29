@@ -1,7 +1,7 @@
 package com.thachnn.ShopIoT.service;
 
 import com.thachnn.ShopIoT.dto.request.CheckPrevOrderRequest;
-import com.thachnn.ShopIoT.dto.request.NotificationNewOrderRequest;
+import com.thachnn.ShopIoT.dto.request.NotificationRequest;
 import com.thachnn.ShopIoT.dto.request.OrderDetailRequest;
 import com.thachnn.ShopIoT.dto.request.OrderRequest;
 import com.thachnn.ShopIoT.dto.response.OrderResponse;
@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Service;
@@ -30,11 +31,12 @@ public class OrderService {
 
     private final OrderStatusRepository orderStatusRepository;
     private final ProductService productService;
-    private final NotificationNewOrderService notificationNewOrderService;
+    private final NotificationService notificationService;
     private final UserService userService;
     private final OrderMapper orderMapper;
     private final OrderDetailMapper orderDetailMapper;
     private final OrderRepository orderRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public OrderService(
             OrderStatusRepository orderStatusRepository,
@@ -43,7 +45,8 @@ public class OrderService {
             OrderMapper orderMapper,
             OrderDetailMapper orderDetailMapper,
             OrderRepository orderRepository,
-            NotificationNewOrderService notificationNewOrderService
+            NotificationService notificationService,
+            SimpMessagingTemplate  messagingTemplate
     ){
         this.orderRepository = orderRepository;
         this.productService = productService;
@@ -51,12 +54,13 @@ public class OrderService {
         this.orderMapper = orderMapper;
         this.orderDetailMapper = orderDetailMapper;
         this.orderStatusRepository = orderStatusRepository;
-        this.notificationNewOrderService = notificationNewOrderService;
+        this.notificationService = notificationService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PreAuthorize("hasRole('USER')")
     @Transactional
-    public OrderResponse createNewOrder(OrderRequest orderReq, Integer userId){
+    public Order createNewOrder(OrderRequest orderReq, Integer userId){
 
         // get status PENDING
         OrderStatus orderStatus = orderStatusRepository.findByStatusName("PENDING").orElseThrow();
@@ -67,6 +71,7 @@ public class OrderService {
 
         Order newOrder = orderMapper.toOrder(orderReq);
 
+        //Check the quantity of products in stock for each product in the order detail
         List<CheckPrevOrderRequest.PrevOrder> prevOrderList = detailReqList.stream().map(
                 detailReq -> {
                     CheckPrevOrderRequest.PrevOrder prevOrder = new CheckPrevOrderRequest.PrevOrder();
@@ -96,13 +101,15 @@ public class OrderService {
 
         var returnOrder = orderRepository.save(newOrder);
 
-        notificationNewOrderService.createNotification(
-                NotificationNewOrderRequest.builder()
+        Notification notification = notificationService.create(
+                NotificationRequest.builder()
                         .orderCode(returnOrder.getOrderCode())
                         .message("Bạn có đơn hàng mới")
+                        .sender(userId)
                         .build());
 
-        return orderMapper.toOrderResponse(returnOrder);
+        messagingTemplate.convertAndSend("/topic/admin", notification);
+        return returnOrder;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
