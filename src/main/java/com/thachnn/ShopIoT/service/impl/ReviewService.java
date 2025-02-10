@@ -1,4 +1,4 @@
-package com.thachnn.ShopIoT.service;
+package com.thachnn.ShopIoT.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -12,6 +12,7 @@ import com.thachnn.ShopIoT.model.Product;
 import com.thachnn.ShopIoT.model.Review;
 import com.thachnn.ShopIoT.model.User;
 import com.thachnn.ShopIoT.repository.ReviewRepository;
+import com.thachnn.ShopIoT.service.IReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,11 +21,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @EnableMethodSecurity
-public class ReviewService {
+public class ReviewService implements IReviewService {
 
     @Autowired
     ReviewRepository reviewRepository;
@@ -38,6 +37,7 @@ public class ReviewService {
     @Autowired
     ReviewMapper reviewMapper;
 
+    @Override
     @PreAuthorize("hasRole('USER')")
     public ReviewResponse createReview(ReviewRequest request, String username){
         User user = userService.getByUsername(username);
@@ -53,11 +53,13 @@ public class ReviewService {
         return reviewMapper.toReviewResponse(reviewRepository.save(review));
     }
 
+    @Override
     public Review getSingleReview(Long id){
         return reviewRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorApp.REVIEW_NOT_FOUND));
     }
 
+    @Override
     public ReviewOverall getOverallReviewForProduct(Long productId){
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode detail = objectMapper.createObjectNode();
@@ -79,10 +81,12 @@ public class ReviewService {
                 .build();
     }
 
+    @Override
     public boolean existReviewByUserAndProduct(User user, Product product){
         return reviewRepository.existsByUserAndProduct(user, product);
     }
 
+    @Override
     public ReviewResponse getByUserAndProduct(String username, Long productId){
         User user = userService.getByUsername(username);
         Product product = productService.getSingleProduct(productId);
@@ -91,6 +95,7 @@ public class ReviewService {
         return reviewMapper.toReviewResponse(review);
     }
 
+    @Override
     public Slice<ReviewResponse> getByProductAndRating(
             Long productId, Integer rating, Integer number, Integer size
     ){
@@ -105,6 +110,7 @@ public class ReviewService {
         return reviewSlice.map(reviewMapper::toReviewResponse);
     }
 
+    @Override
     public ReviewResponse updateReview(Long id, ReviewRequest request, String username){
         Review review = getSingleReview(id);
 
@@ -117,6 +123,7 @@ public class ReviewService {
         return reviewMapper.toReviewResponse(reviewRepository.save(review));
     }
 
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteReview(Long id){
         reviewRepository.deleteById(id);

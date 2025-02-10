@@ -1,10 +1,9 @@
-package com.thachnn.ShopIoT.service;
+package com.thachnn.ShopIoT.service.impl;
 
 import com.thachnn.ShopIoT.dto.request.CheckPrevOrderRequest;
 import com.thachnn.ShopIoT.dto.request.NotificationRequest;
 import com.thachnn.ShopIoT.dto.request.OrderDetailRequest;
 import com.thachnn.ShopIoT.dto.request.OrderRequest;
-import com.thachnn.ShopIoT.dto.response.OrderResponse;
 import com.thachnn.ShopIoT.exception.AppException;
 import com.thachnn.ShopIoT.exception.ErrorApp;
 import com.thachnn.ShopIoT.mapper.OrderDetailMapper;
@@ -12,6 +11,7 @@ import com.thachnn.ShopIoT.mapper.OrderMapper;
 import com.thachnn.ShopIoT.model.*;
 import com.thachnn.ShopIoT.repository.OrderRepository;
 import com.thachnn.ShopIoT.repository.OrderStatusRepository;
+import com.thachnn.ShopIoT.service.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +27,7 @@ import java.util.Optional;
 
 @Service
 @EnableMethodSecurity
-public class OrderService {
+public class OrderService implements IOrderService {
 
     private final OrderStatusRepository orderStatusRepository;
     private final ProductService productService;
@@ -37,6 +37,7 @@ public class OrderService {
     private final OrderDetailMapper orderDetailMapper;
     private final OrderRepository orderRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final EmailService emailService;
 
     public OrderService(
             OrderStatusRepository orderStatusRepository,
@@ -46,7 +47,8 @@ public class OrderService {
             OrderDetailMapper orderDetailMapper,
             OrderRepository orderRepository,
             NotificationService notificationService,
-            SimpMessagingTemplate  messagingTemplate
+            SimpMessagingTemplate  messagingTemplate,
+            EmailService emailService
     ){
         this.orderRepository = orderRepository;
         this.productService = productService;
@@ -56,8 +58,10 @@ public class OrderService {
         this.orderStatusRepository = orderStatusRepository;
         this.notificationService = notificationService;
         this.messagingTemplate = messagingTemplate;
+        this.emailService = emailService;
     }
 
+    @Override
     @PreAuthorize("hasRole('USER')")
     @Transactional
     public Order createNewOrder(OrderRequest orderReq, Integer userId){
@@ -109,9 +113,12 @@ public class OrderService {
                         .build());
 
         messagingTemplate.convertAndSend("/topic/admin", notification);
+        emailService.sendOrderConfirmEmail(user, returnOrder);
+
         return returnOrder;
     }
 
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public Page<Order> getAll(Integer pageNumber, Integer pageSize){
         Sort sort = Sort.by(Sort.Direction.DESC, "orderTime");
@@ -119,6 +126,7 @@ public class OrderService {
         return orderRepository.findAll(pageable);
     }
 
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public Order changeStatus(String orderCode, String orderStatus){
         OrderStatus status = orderStatusRepository.findByStatusName(orderStatus).orElseThrow();
@@ -127,6 +135,7 @@ public class OrderService {
         else throw new AppException(ErrorApp.CHANGE_STATUS_FAILED);
     }
 
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public Order changePaymentStatusByAdmin(String orderCode, boolean paymentStatus){
         int check = orderRepository.updateOrderPaymentStatus(orderCode, paymentStatus);
@@ -134,6 +143,7 @@ public class OrderService {
         else throw new AppException(ErrorApp.CHANGE_STATUS_FAILED);
     }
 
+    @Override
     @PreAuthorize("hasRole('USER')")
     public boolean checkPreviousOrder(List<CheckPrevOrderRequest.PrevOrder> listProduct){
         for(var i : listProduct){
@@ -148,34 +158,41 @@ public class OrderService {
         return true;
     }
 
+    @Override
     public void changPaymentStatus(Order order, boolean paymentStatus){
         order.setPaymentStatus(paymentStatus);
         orderRepository.save(order);
     }
 
+    @Override
     public void saveTransactionId(Order order, String transactionId, String paymentType){
         order.setTransactionId(transactionId);
         order.setPaymentType(paymentType);
         orderRepository.save(order);
     }
 
+    @Override
     public boolean existingByOrderCodeAndTransaction(String orderCode, String transactionId){
         return orderRepository.existsByOrderCodeAndTransactionId(orderCode, transactionId);
     }
 
+    @Override
     public Order saveCallbackPaymentData(Order order, String callbackData){
         order.setCallbackPayment(callbackData);
         return orderRepository.save(order);
     }
 
+    @Override
     public Optional<Order> getOrderByTransactionId(String transactionId){
         return orderRepository.findByTransactionId(transactionId);
     }
 
+    @Override
     public boolean checkTransactionId(String transactionId){
         return orderRepository.existsByTransactionId(transactionId);
     }
 
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public Page<Order> getOrdersByUser(Integer userId, Integer pageNum, Integer pageSize){
         User user = userService.getById(userId);
@@ -190,6 +207,7 @@ public class OrderService {
                 .orElseThrow(() -> new AppException(ErrorApp.ORDER_NOT_FOUND));
     }*/
 
+    @Override
     public Order getOrderByCode(String orderCode){
         return orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new AppException(ErrorApp.ORDER_NOT_FOUND));
@@ -199,11 +217,13 @@ public class OrderService {
         return orderRepository.existsByOrderCode(orderCode);
     }*/
 
+    @Override
     @PreAuthorize("#username == principal.claims['data']['username']")
     public List<Order> getMyOrder(String username){
         return orderRepository.getAllOrderByUser(username);
     }
 
+    @Override
     @PreAuthorize("#username == principal.claims['data']['username']")
     public Order cancelOrder(String orderCode, String username){
         OrderStatus cancelStatus = orderStatusRepository.findById(5).orElseThrow();

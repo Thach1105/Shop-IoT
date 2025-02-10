@@ -1,4 +1,4 @@
-package com.thachnn.ShopIoT.service;
+package com.thachnn.ShopIoT.service.impl;
 
 import com.thachnn.ShopIoT.dto.request.CategoryRequest;
 import com.thachnn.ShopIoT.dto.response.CategoryResponse;
@@ -7,6 +7,7 @@ import com.thachnn.ShopIoT.exception.ErrorApp;
 import com.thachnn.ShopIoT.mapper.CategoryMapper;
 import com.thachnn.ShopIoT.model.Category;
 import com.thachnn.ShopIoT.repository.CategoryRepository;
+import com.thachnn.ShopIoT.service.ICategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class CategoryService {
+public class CategoryService implements ICategoryService {
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -23,11 +24,13 @@ public class CategoryService {
     @Autowired
     private CategoryMapper categoryMapper;
 
+    @Override
     public Category getById(Integer id){
         return categoryRepository.findById(id).
                 orElseThrow(() -> new AppException(ErrorApp.CATEGORY_NOT_FOUND));
     }
 
+    @Override
     public CategoryResponse getBySlug(String slug){
         Category category = categoryRepository.findBySlug(slug).
                 orElseThrow(() -> new AppException(ErrorApp.CATEGORY_NOT_FOUND));
@@ -35,6 +38,7 @@ public class CategoryService {
         return categoryMapper.toCategoryResponse(category);
     }
 
+    @Override
     public List<CategoryResponse> getAll(){
 
         List<Category> categoryList = categoryRepository.findAll();
@@ -43,6 +47,7 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public CategoryResponse create(CategoryRequest request){
 
         Category newCategory = categoryMapper.toCategory(request);
@@ -59,6 +64,7 @@ public class CategoryService {
         return categoryMapper.toCategoryResponse(categoryRepository.save(newCategory));
     }
 
+    @Override
     public CategoryResponse update(Integer id, CategoryRequest request){
 
         Category prevCategory = getById(id);
@@ -85,11 +91,13 @@ public class CategoryService {
         return categoryMapper.toCategoryResponse(categoryRepository.save(prevCategory));
     }
 
+    @Override
     public void delete(Integer id){
         getById(id);
         categoryRepository.deleteById(id);
     }
 
+    @Override
     public List<CategoryResponse> getCategoryTree(){
 
         List<Category> categories = categoryRepository.findAll();
@@ -102,12 +110,14 @@ public class CategoryService {
         return result.stream().map(categoryMapper::toCategoryResponse).collect(Collectors.toList());
     }
 
+    @Override
     public CategoryResponse getByName(String name){
         Category category = categoryRepository.findByName(name)
                 .orElseThrow(() -> new AppException(ErrorApp.CATEGORY_NOT_FOUND));
         return  categoryMapper.toCategoryResponse(category);
     }
 
+    @Override
     public int changeStatus(Integer id, boolean status){
         if(status) {
             return categoryRepository.updateSingleCategoryStatus(id, true);

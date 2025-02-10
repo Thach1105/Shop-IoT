@@ -14,7 +14,7 @@ public class VNPayConfig {
     public static final String secretKey = "575ZNK8IBDNMRGKHQ59NOG0S397143WK";
 
     public static final String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static final String vnp_ReturnUrl = "http://localhost:8080/shopIoT/api/payment/vn-pay/call-back";
+    public static final String vnp_ReturnUrl = "https://ba30-2402-800-61c7-c589-993e-f03c-5aa4-e574.ngrok-free.app/thanh-toan?paymentType=VNPAY";
     public static final String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
 
     public static String md5(String message) {

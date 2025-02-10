@@ -19,7 +19,7 @@ public class ScheduledTasks {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
-    @Scheduled(fixedRate = 3600000)
+    @Scheduled(fixedRate = 36000)
     public void removeExpiredTokens() {
         var listInvalidatedToken = invalidatedTokenRepository.findAll();
 

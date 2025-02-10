@@ -7,7 +7,7 @@ import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.UserResponse;
 import com.thachnn.ShopIoT.mapper.UserMapper;
 import com.thachnn.ShopIoT.model.User;
-import com.thachnn.ShopIoT.service.UserService;
+import com.thachnn.ShopIoT.service.impl.UserService;
 import com.thachnn.ShopIoT.util.PageInfo;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @EnableMethodSecurity
+@Validated
 public class UserController {
     @Autowired
     private UserService userService;
@@ -131,7 +133,7 @@ public class UserController {
     @PostMapping("/{id}/change-password")
     public ResponseEntity<ApiResponse<?>> changePassword(
             @PathVariable("id") Integer id,
-            @RequestBody ChangePasswordRequest request
+            @RequestBody @Valid ChangePasswordRequest request
     ){
         userService.changePassword(id, request);
 

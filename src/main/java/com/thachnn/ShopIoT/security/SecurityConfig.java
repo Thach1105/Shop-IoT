@@ -47,7 +47,7 @@ public class SecurityConfig {
         List<String> ALLOWED_ORIGINS = List.of(
                 "http://localhost:5173",
                 "https://shop-iot-fe.vercel.app",
-                "https://6411-2401-d800-376-844f-7160-ec90-3f10-f9a1.ngrok-free.app"
+                "https://a03b-2401-d800-7fe1-70c4-2cbd-e47f-537c-ae7b.ngrok-free.app"
                 );
 
         CorsConfiguration config = new CorsConfiguration();

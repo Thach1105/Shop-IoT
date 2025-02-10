@@ -1,4 +1,4 @@
-package com.thachnn.ShopIoT.service;
+package com.thachnn.ShopIoT.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +7,7 @@ import com.thachnn.ShopIoT.dto.response.StatisticResponse;
 import com.thachnn.ShopIoT.repository.OrderDetailRepository;
 import com.thachnn.ShopIoT.repository.OrderRepository;
 import com.thachnn.ShopIoT.repository.UserRepository;
+import com.thachnn.ShopIoT.service.IStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
-public class StatisticsService {
+public class StatisticsService implements IStatisticsService {
     @Autowired
     private OrderRepository orderRepository;
 
@@ -27,15 +28,18 @@ public class StatisticsService {
     @Autowired
     private UserRepository userRepository;
 
+    @Override
     public List<Object[]> countOrder(Date from, Date to) {
         List<Object[]> res = orderRepository.countOrderByDate(from, to);
         return res;
     }
 
+    @Override
     public long countCustomer() {
         return userRepository.countCustomer();
     }
 
+    @Override
     public List<Object[]> getTopOrderedProduct(long from, long to){
         Date startDate = new Date(from);
         Date endDate = new Date(to + 86400000 - 1);
@@ -43,6 +47,7 @@ public class StatisticsService {
        return orderDetailRepository.getTopOrderedProduct(startDate, endDate);
     }
 
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public StatisticResponse buildStatisticResponse(long from, long to) {
         Date startDate = new Date(from);

@@ -11,7 +11,9 @@ import lombok.*;
 @Builder
 public class CartItemRequest {
 
-    @NotNull(message = "")
+    @NotNull(message = "PRODUCT_ID_INVALID")
     private Long product_id;
+
+    @NotNull(message = "QUANTITY_NOT_NULL")
     private Integer quantity;
 }

@@ -12,12 +12,12 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryRequest {
 
-    @NotEmpty
+    @NotEmpty(message = "CATEGORY_NAME_NOT_EMPTY")
     String name;
     Integer parent;
     String description;
 
-    @NotEmpty
+    @NotEmpty(message = "CATEGORY_SLUG_NOT_EMPTY")
     String slug;
     boolean enabled;
 }

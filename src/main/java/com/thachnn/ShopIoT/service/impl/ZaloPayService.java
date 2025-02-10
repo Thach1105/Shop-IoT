@@ -1,4 +1,4 @@
-package com.thachnn.ShopIoT.service;// Java version "1.8.0_201"
+package com.thachnn.ShopIoT.service.impl;// Java version "1.8.0_201"
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thachnn.ShopIoT.config.ZaloPayConfig;
 import com.thachnn.ShopIoT.dto.request.ZaloCallbackRequest;
@@ -43,8 +43,7 @@ public class ZaloPayService {
     OrderService orderService;
 
     private final String redirectURL =
-            "https://6411-2401-d800-376-844f-7160-ec90-3f10-f9a1.ngrok-free.app/thanh-toan?paymentType=ZALOPAY";
-
+            "http://localhost:5173/thanh-toan?paymentType=ZALOPAY";
 
     public String createOrder(String orderCode, String app_user) throws IOException {
         Order order = orderService.getOrderByCode(orderCode);
@@ -89,7 +88,7 @@ public class ZaloPayService {
         orderParams.put("embed_data", new JSONObject(embed_data).toString());
         orderParams.put("phone", order.getPhone());
 //        orderParams.put("address", order.getAddress());
-        String callbackURL = "https://61b7-2402-800-61c7-c589-993e-f03c-5aa4-e574.ngrok-free.app/shopIoT/api";
+        String callbackURL = "http://54.252.164.25:8080/shopIoT/api";
         orderParams.put("callback_url", callbackURL + "/payment/zalo-pay/call-back");
 
         // app_id +”|”+ app_trans_id +”|”+ appuser +”|”+ amount +"|" + app_time +”|”+ embed_data +"|" +item

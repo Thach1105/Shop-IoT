@@ -1,4 +1,4 @@
-package com.thachnn.ShopIoT.service;
+package com.thachnn.ShopIoT.service.impl;
 import com.thachnn.ShopIoT.dto.request.ProductRequest;
 import com.thachnn.ShopIoT.dto.response.ProductResponse;
 import com.thachnn.ShopIoT.dto.response.ProductResponseSimple;
@@ -9,9 +9,10 @@ import com.thachnn.ShopIoT.model.Brand;
 import com.thachnn.ShopIoT.model.Category;
 import com.thachnn.ShopIoT.model.Product;
 import com.thachnn.ShopIoT.repository.ProductRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.thachnn.ShopIoT.service.IProductService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,10 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 
+@Slf4j
 @Service
-public class ProductService {
+public class ProductService implements IProductService {
 
-    private static final Logger log = LoggerFactory.getLogger(ProductService.class);
     @Autowired
     private CategoryService categoryService;
 
@@ -41,6 +42,7 @@ public class ProductService {
     private ProductMapper productMapper;
 
     // save new product
+    @Override
     public ProductResponse create(ProductRequest request, MultipartFile image) {
         if(productRepository.existsByName(request.getName()))
             throw new AppException(ErrorApp.PRODUCT_NAME_EXISTED);
@@ -71,6 +73,7 @@ public class ProductService {
     }
 
     // get product by id
+    @Override
     public Product getSingleProduct(Long id){
 
         return productRepository.findById(id)
@@ -78,6 +81,7 @@ public class ProductService {
     }
 
     // get product by slug
+    @Override
     public ProductResponse getProductBySlug(String slug){
         Product product = productRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(ErrorApp.PRODUCT_NOT_FOUND));
@@ -86,6 +90,7 @@ public class ProductService {
     }
 
     // get all product
+    @Override
     public Page<ProductResponseSimple> getAll(Integer number, Integer size, String sortBy, String order){
         Sort sort = Sort.by(Sort.Direction.valueOf(order.toUpperCase()),sortBy);
         Pageable pageable = PageRequest.of(number, size, sort);
@@ -94,6 +99,7 @@ public class ProductService {
     }
 
     //search
+    @Override
     public Page<ProductResponseSimple> search(
             Integer number,
             Integer size,
@@ -122,6 +128,7 @@ public class ProductService {
     }
 
     //get product by category
+    @Override
     public Page<ProductResponseSimple> getProductByCategory(
             Integer categoryId,
             Integer number,
@@ -149,6 +156,7 @@ public class ProductService {
     }
 
     // get product by brand
+    @Override
     public Page<ProductResponseSimple> getProductByBrand(
             Integer brandId,
             Integer number,
@@ -165,6 +173,7 @@ public class ProductService {
     }
 
     // update product
+    @Override
     public ProductResponse update(Long id, ProductRequest request, MultipartFile image){
         Product prevProduct = getSingleProduct(id);
 
@@ -205,6 +214,7 @@ public class ProductService {
     }
 
     //delete product
+    @Override
     public void delete(Long id){
         Product product = getSingleProduct(id);
         storageService.deleteFile("products-image/" + id + product.getImage());
@@ -212,6 +222,7 @@ public class ProductService {
     }
 
     // add quantity to product
+    @Override
     public ProductResponse addProductStock(Long id, Integer quantity){
         Product product = getSingleProduct(id);
 
@@ -220,6 +231,7 @@ public class ProductService {
     }
 
     // subtract quantity from product
+    @Override
     public void subStock(Long id, Integer quantity){
         Product product = getSingleProduct(id);
         int stock = product.getStock() - quantity;

@@ -5,7 +5,7 @@ import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.ReviewResponse;
 import com.thachnn.ShopIoT.mapper.ReviewMapper;
 import com.thachnn.ShopIoT.model.Review;
-import com.thachnn.ShopIoT.service.ReviewService;
+import com.thachnn.ShopIoT.service.impl.ReviewService;
 import com.thachnn.ShopIoT.util.PageInfo;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

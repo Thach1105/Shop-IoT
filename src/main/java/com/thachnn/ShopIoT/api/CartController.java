@@ -5,16 +5,18 @@ import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.CartResponse;
 import com.thachnn.ShopIoT.mapper.CartMapper;
 import com.thachnn.ShopIoT.model.Cart;
-import com.thachnn.ShopIoT.service.CartService;
+import com.thachnn.ShopIoT.service.impl.CartService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/carts")
+@Validated
 public class CartController {
 
     @Autowired
@@ -76,7 +78,7 @@ public class CartController {
     @PutMapping("{cartId}/change-quantity")
     public ResponseEntity<?> updateQuantity(
             @PathVariable(name = "cartId") Long cartId,
-            @RequestBody CartItemRequest request,
+            @RequestBody @Valid CartItemRequest request,
             @AuthenticationPrincipal Jwt jwt
     ){
         String username = (String) jwt.getClaimAsMap("data").get("username");

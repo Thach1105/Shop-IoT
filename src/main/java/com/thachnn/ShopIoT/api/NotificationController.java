@@ -2,7 +2,7 @@ package com.thachnn.ShopIoT.api;
 
 import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.model.Notification;
-import com.thachnn.ShopIoT.service.NotificationService;
+import com.thachnn.ShopIoT.service.impl.NotificationService;
 import com.thachnn.ShopIoT.util.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Slice;

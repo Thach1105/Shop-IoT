@@ -3,8 +3,8 @@ package com.thachnn.ShopIoT.api;
 import com.thachnn.ShopIoT.dto.request.SolutionRequest;
 import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.SolutionResponse;
-import com.thachnn.ShopIoT.service.SolutionService;
-import com.thachnn.ShopIoT.service.StorageService;
+import com.thachnn.ShopIoT.service.impl.SolutionService;
+import com.thachnn.ShopIoT.service.impl.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 

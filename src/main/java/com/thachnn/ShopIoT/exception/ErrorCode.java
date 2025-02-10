@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum ErrorCode {
 
-    ERROR_LOGIN(1001, "Login error"),
+    ERROR_LOGIN(11000, "Login error"),
     ERROR_REGISTER(1002, "Register error"),
     ERROR_USER(1003, "User error"),
     ERROR_AUTHENTICATION(1004, "Authentication error"),

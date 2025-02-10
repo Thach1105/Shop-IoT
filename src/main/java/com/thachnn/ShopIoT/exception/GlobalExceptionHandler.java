@@ -83,7 +83,7 @@ public class GlobalExceptionHandler {
                 .body(apiResponse);
     }
 
-    @ExceptionHandler(value = Exception.class)
+   /* @ExceptionHandler(value = Exception.class)
     ResponseEntity<ApiResponse<?>> handlingAppException(Exception exception){
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(false)
@@ -91,6 +91,6 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.badRequest().body(apiResponse);
-    }
+    }*/
 
 }

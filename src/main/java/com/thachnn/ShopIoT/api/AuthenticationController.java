@@ -9,26 +9,32 @@ import com.thachnn.ShopIoT.dto.request.RefreshRequest;
 import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.AuthenticationResponse;
 import com.thachnn.ShopIoT.dto.response.IntrospectResponse;
-import com.thachnn.ShopIoT.service.AuthenticationService;
-import jakarta.servlet.http.HttpSession;
+import com.thachnn.ShopIoT.service.impl.AuthenticationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 
 @RestController
 @RequestMapping("/auth")
+@Validated
 public class AuthenticationController {
 
     @Autowired
     private AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequest request, HttpSession session){
+    public ResponseEntity<ApiResponse<?>> login(@RequestBody @Valid LoginRequest request){
 
         AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
-        session.setAttribute("token", authenticationResponse.getToken());
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
                 .content(authenticationResponse)
@@ -52,7 +58,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<?>> logout(@RequestBody LogoutRequest request)
+    public ResponseEntity<ApiResponse<?>> logout(@RequestBody @Valid LogoutRequest request, @AuthenticationPrincipal Jwt jwt)
             throws ParseException, JOSEException {
 
         authenticationService.logout(request);
@@ -66,7 +72,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody RefreshRequest request)
+    public ResponseEntity<?> refresh(@RequestBody @Valid RefreshRequest request)
             throws ParseException, JOSEException {
 
         AuthenticationResponse authenticationResponse = authenticationService.refreshToken(request);

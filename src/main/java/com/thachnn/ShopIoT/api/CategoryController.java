@@ -5,7 +5,7 @@ import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.CategoryResponse;
 import com.thachnn.ShopIoT.mapper.CategoryMapper;
 import com.thachnn.ShopIoT.model.Category;
-import com.thachnn.ShopIoT.service.CategoryService;
+import com.thachnn.ShopIoT.service.impl.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -88,7 +88,7 @@ public class CategoryController {
     @PutMapping("/{id}") /*checked*/
     public ResponseEntity<?> update(
             @PathVariable Integer id,
-            @RequestBody CategoryRequest request
+            @RequestBody @Valid CategoryRequest request
     ){
         CategoryResponse
                 categoryResponse = categoryService.update(id, request);

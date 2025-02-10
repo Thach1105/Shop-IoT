@@ -1,4 +1,4 @@
-package com.thachnn.ShopIoT.service;
+package com.thachnn.ShopIoT.service.impl;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -11,11 +11,15 @@ import com.thachnn.ShopIoT.dto.response.IntrospectResponse;
 import com.thachnn.ShopIoT.exception.AppException;
 import com.thachnn.ShopIoT.exception.ErrorApp;
 import com.thachnn.ShopIoT.model.InvalidatedToken;
+import com.thachnn.ShopIoT.model.RedisToken;
 import com.thachnn.ShopIoT.model.User;
 import com.thachnn.ShopIoT.repository.InvalidatedTokenRepository;
+import com.thachnn.ShopIoT.repository.RedisTokenRepository;
 import com.thachnn.ShopIoT.repository.httpclient.OutboundIdentityClient;
 import com.thachnn.ShopIoT.repository.httpclient.OutboundUserClient;
+import com.thachnn.ShopIoT.service.IAuthenticationService;
 import com.thachnn.ShopIoT.util.TransactionUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,9 +33,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
+@Slf4j(topic = "AUTHENTICATION-SERVICE")
 @Service
-public class AuthenticationService {
+@RequiredArgsConstructor
+public class AuthenticationService implements IAuthenticationService {
 
     @Value("${jwt.valid-duration}")
     protected long VALID_DURATION;
@@ -59,24 +64,10 @@ public class AuthenticationService {
     private final OutboundIdentityClient outboundIdentityClient;
     private final OutboundUserClient outboundUserClient;
     private final EmailService emailService;
-
-    public AuthenticationService(
-            InvalidatedTokenRepository invalidatedTokenRepository,
-            PasswordEncoder passwordEncoder,
-            UserService userService,
-            OutboundIdentityClient outboundIdentityClient,
-            OutboundUserClient outboundUserClient,
-            EmailService emailService
-    ) {
-        this.invalidatedTokenRepository = invalidatedTokenRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userService = userService;
-        this.outboundIdentityClient = outboundIdentityClient;
-        this.outboundUserClient = outboundUserClient;
-        this.emailService = emailService;
-    }
+    private final RedisTokenService redisTokenService;
 
     // Login
+    @Override
     public AuthenticationResponse authenticate(LoginRequest request) {
         User user = userService.getByUsername(request.getUsername());
         if (user != null) {
@@ -92,6 +83,7 @@ public class AuthenticationService {
     }
 
     // Generate Token
+    @Override
     public String generateToken(User user) {
         // Build user data in token
         Map<String, Object> dataUser = new HashMap<>();
@@ -104,8 +96,8 @@ public class AuthenticationService {
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
                 .issuer("Shop IoT")
-                .issueTime(new Date())
-                .expirationTime(new Date(Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
+                .issueTime(new Date(System.currentTimeMillis()))
+                .expirationTime(new Date(System.currentTimeMillis() + VALID_DURATION * 1000))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("data", dataUser)
                 .claim("scope", user.getRole().getName())
@@ -115,6 +107,7 @@ public class AuthenticationService {
         JWSObject jwsObject = new JWSObject(jwsHeader, payload);
 
         try {
+            log.info("Generate token for user: {}", user);
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
@@ -123,22 +116,25 @@ public class AuthenticationService {
     }
 
     // Verify Token
+    @Override
     public SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
-
         Date expiryTime = isRefresh
-                ? new Date(signedJWT.getJWTClaimsSet().getIssueTime()
-                .toInstant().plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli())
+                ? Date.from(Instant.now().plusSeconds(REFRESHABLE_DURATION))
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
 
         boolean verified = signedJWT.verify(verifier);
-
         if (!(verified && expiryTime.after(new Date()))) {
             throw new AppException(ErrorApp.UNAUTHENTICATION);
         }
 
-        if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID())) {
+        /*if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID())) {
+            System.out.println(signedJWT.getJWTClaimsSet().getJWTID());
+            throw new AppException(ErrorApp.UNAUTHENTICATION);
+        }*/
+        if (redisTokenService.existsById(signedJWT.getJWTClaimsSet().getJWTID())) {
+            System.out.println(signedJWT.getJWTClaimsSet().getJWTID());
             throw new AppException(ErrorApp.UNAUTHENTICATION);
         }
 
@@ -146,6 +142,7 @@ public class AuthenticationService {
     }
 
     // Refresh Token
+    @Override
     public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
         SignedJWT signJWT = verifyToken(request.getToken(), true);
 
@@ -153,12 +150,19 @@ public class AuthenticationService {
         Date expiryTime = new Date(signJWT.getJWTClaimsSet().getIssueTime()
                 .toInstant().plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli());
 
-        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+        /*InvalidatedToken invalidatedToken = InvalidatedToken.builder()
                 .id(jit)
                 .expiryTime(expiryTime)
                 .build();
 
-        invalidatedTokenRepository.save(invalidatedToken);
+        invalidatedTokenRepository.save(invalidatedToken);*/
+        redisTokenService.save(
+                RedisToken.builder()
+                        .id(jit)
+                        .expiryTime(expiryTime)
+                        .accessToken(request.getToken())
+                .build()
+        );
 
         // Generate new token
         String username = signJWT.getJWTClaimsSet().getSubject();
@@ -171,6 +175,7 @@ public class AuthenticationService {
     }
 
     // Logout
+    @Override
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
         try {
             SignedJWT signToken = verifyToken(request.getToken(), true);
@@ -179,18 +184,28 @@ public class AuthenticationService {
             Date expiryTime = new Date(signToken.getJWTClaimsSet().getIssueTime()
                     .toInstant().plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli());
 
+            /*System.out.println(jwtID);
             InvalidatedToken invalidatedToken = InvalidatedToken.builder()
                     .expiryTime(expiryTime)
                     .id(jwtID)
                     .build();
 
-            invalidatedTokenRepository.save(invalidatedToken);
+            invalidatedTokenRepository.save(invalidatedToken);*/
+
+            redisTokenService.save(
+                    RedisToken.builder()
+                            .id(jwtID)
+                            .expiryTime(expiryTime)
+                            .accessToken(request.getToken())
+                            .build()
+            );
         } catch (AppException e) {
             log.info("Token already expired");
         }
     }
 
     // Introspect
+    @Override
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         String token = request.getToken();
         boolean valid = true;
@@ -206,6 +221,7 @@ public class AuthenticationService {
     }
 
     // OAuth2 Google Authenticate
+    @Override
     public AuthenticationResponse oauth2GoogleAuthenticate(String code) {
         var response = outboundIdentityClient.exchangeToken(
                 ExchangeTokenRequest.builder()
@@ -238,7 +254,7 @@ public class AuthenticationService {
 
             emailService.sendSimpleMessage(userInfo.getEmail(), subject, body);
         }
-
+        
         String token = generateToken(user);
         return AuthenticationResponse.builder()
                 .token(token)

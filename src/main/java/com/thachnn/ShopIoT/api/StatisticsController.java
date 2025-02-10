@@ -2,7 +2,7 @@ package com.thachnn.ShopIoT.api;
 
 import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.StatisticResponse;
-import com.thachnn.ShopIoT.service.StatisticsService;
+import com.thachnn.ShopIoT.service.impl.StatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

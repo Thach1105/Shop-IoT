@@ -1,4 +1,4 @@
-package com.thachnn.ShopIoT.service;
+package com.thachnn.ShopIoT.service.impl;
 
 import com.thachnn.ShopIoT.dto.request.ChangePasswordRequest;
 import com.thachnn.ShopIoT.dto.request.CreateUserRequest;
@@ -10,7 +10,9 @@ import com.thachnn.ShopIoT.mapper.UserMapper;
 import com.thachnn.ShopIoT.model.Role;
 import com.thachnn.ShopIoT.model.User;
 import com.thachnn.ShopIoT.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.thachnn.ShopIoT.service.IUserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,31 +20,24 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService {
+@Slf4j(topic = "USER-SERVICE")
+@RequiredArgsConstructor
+public class UserService implements IUserService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final RoleService roleService;
     private final UserRepository userRepository;
 
-    public UserService(
-            PasswordEncoder passwordEncoder,
-            UserMapper userMapper,
-            RoleService roleService,
-            UserRepository userRepository
-    ) {
-        this.passwordEncoder = passwordEncoder;
-        this.userMapper = userMapper;
-        this.roleService = roleService;
-        this.userRepository = userRepository;
-    }
-
     // Create user
+    @Override
+    @Transactional
     public User create(CreateUserRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new AppException(ErrorApp.USERNAME_EXISTED);
@@ -56,10 +51,13 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(roleUSER);
 
-        return userRepository.save(user);
+        User newUser = userRepository.save(user);
+        log.info("Create new user successfully");
+        return newUser;
     }
 
     // Retrieve all users
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getAll() {
         List<User> users = userRepository.findAll();
@@ -67,6 +65,7 @@ public class UserService {
     }
 
     // Retrieve user by ID
+    @Override
     @PreAuthorize("hasRole('ADMIN') or #id == principal.claims['data']['id']")
     public User getById(Integer id) {
         return userRepository.findById(id)
@@ -74,23 +73,27 @@ public class UserService {
     }
 
     // Retrieve user by username
+    @Override
     public User getByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorApp.USER_NOTFOUND));
     }
 
     // Retrieve user by email
+    @Override
     public User getByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorApp.EMAIL_NOT_EXISTED));
     }
 
     // Check if email exists
+    @Override
     public boolean existingEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
     // Retrieve paginated users
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public Page<UserResponse> getPageUser(Integer pageNum, Integer size, String sortField, String keyword) {
         Sort sort = (sortField != null) ? Sort.by(sortField).ascending() : Sort.unsorted();
@@ -107,7 +110,9 @@ public class UserService {
     }
 
     // Update user
+    @Override
     @PreAuthorize("hasRole('ADMIN') or #id == principal.claims['data']['id']")
+    @Transactional
     public UserResponse update(Integer id, UpdateUserRequest request) {
         User prevUser = getById(id);
 
@@ -125,6 +130,7 @@ public class UserService {
     }
 
     // Delete user
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
     public void delete(Integer id) {
         User user = getById(id);
@@ -132,6 +138,7 @@ public class UserService {
     }
 
     // Change password
+    @Override
     @PreAuthorize("#id == principal.claims['data']['id']")
     public void changePassword(Integer id, ChangePasswordRequest request) {
         User user = getById(id);

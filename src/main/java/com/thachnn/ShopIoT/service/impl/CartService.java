@@ -1,4 +1,4 @@
-package com.thachnn.ShopIoT.service;
+package com.thachnn.ShopIoT.service.impl;
 import com.thachnn.ShopIoT.dto.request.CartItemRequest;
 import com.thachnn.ShopIoT.exception.AppException;
 import com.thachnn.ShopIoT.exception.ErrorApp;
@@ -9,19 +9,17 @@ import com.thachnn.ShopIoT.model.User;
 
 import com.thachnn.ShopIoT.repository.CartItemRepository;
 import com.thachnn.ShopIoT.repository.CartRepository;
+import com.thachnn.ShopIoT.service.ICartService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Slf4j
 @Service
-public class CartService {
+public class CartService implements ICartService {
 
     @Autowired
     CartItemRepository cartItemRepository;
@@ -35,6 +33,7 @@ public class CartService {
     @Autowired
     ProductService productService;
 
+    @Override
     public Cart getMyCart(String username){
         User user = userService.getByUsername(username);
         Cart cart = cartRepository.findByUser(user);
@@ -43,6 +42,7 @@ public class CartService {
         return cart;
     }
 
+    @Override
     public Cart addProductToCart(CartItemRequest request, String username){
         int quantity = request.getQuantity();
         User user = userService.getByUsername(username);
@@ -82,6 +82,7 @@ public class CartService {
         }
     }
 
+    @Override
     public Cart updateProductQuantityInCart(CartItemRequest request, String username, Long cartId){
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new AppException(ErrorApp.CART_EMPTY));
@@ -104,7 +105,8 @@ public class CartService {
         return getMyCart(username);
     }
 
-    @Transactional
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public String deleteProductFromCart(Long productId, String username){
         Cart cart = getMyCart(username);
         Product product = productService.getSingleProduct(productId);

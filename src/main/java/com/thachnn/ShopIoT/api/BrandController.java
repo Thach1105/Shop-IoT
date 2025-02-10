@@ -5,18 +5,14 @@ import com.thachnn.ShopIoT.dto.response.ApiResponse;
 import com.thachnn.ShopIoT.dto.response.BrandResponse;
 import com.thachnn.ShopIoT.mapper.BrandMapper;
 import com.thachnn.ShopIoT.model.Brand;
-import com.thachnn.ShopIoT.service.BrandService;
+import com.thachnn.ShopIoT.service.impl.BrandService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/brands")
@@ -82,7 +78,7 @@ public class BrandController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable("id")Integer id,
-                                    @RequestPart("brand") BrandRequest request,
+                                    @RequestPart("brand") @Valid BrandRequest request,
                                     @RequestPart(name = "logo", required = false) MultipartFile logo
     ){
         BrandResponse brandResponse = brandService.update(id, request, logo);

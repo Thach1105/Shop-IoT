@@ -6,8 +6,8 @@ import com.thachnn.ShopIoT.dto.response.ProductResponse;
 import com.thachnn.ShopIoT.dto.response.ProductResponseSimple;
 import com.thachnn.ShopIoT.mapper.ProductMapper;
 import com.thachnn.ShopIoT.model.Product;
-import com.thachnn.ShopIoT.service.ProductService;
-import com.thachnn.ShopIoT.service.StorageService;
+import com.thachnn.ShopIoT.service.impl.ProductService;
+import com.thachnn.ShopIoT.service.impl.StorageService;
 import com.thachnn.ShopIoT.util.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -51,7 +51,6 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getSingleProduct(@PathVariable Long id){
-
         Product product = productService.getSingleProduct(id);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
