@@ -1,0 +1,49 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-shopiot
+    cap_add:
+      - SYS_NICE
+    restart: always
+    environment:
+      - MYSQL_DATABASE=shop_iot
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+    networks:
+      - default
+
+  redis:
+    image: redis:latest
+    container_name: redis-shopiot
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - default
+    command: redis-server --requirepass "" # không đặt password nếu không cần
+
+  backend-service:
+    container_name: shopiot-backend
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - MYSQL_HOST=mysql-shopiot
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - REDIS_HOST=redis-shopiot
+    ports:
+      - "8080:8080"
+    networks:
+      - default
+
+networks:
+  default:
+    name: backend-service
+
+volumes:
+  mysql_data:
