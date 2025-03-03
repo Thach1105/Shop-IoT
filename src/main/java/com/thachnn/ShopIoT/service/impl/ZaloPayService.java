@@ -1,4 +1,5 @@
 package com.thachnn.ShopIoT.service.impl;// Java version "1.8.0_201"
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thachnn.ShopIoT.config.ZaloPayConfig;
 import com.thachnn.ShopIoT.dto.request.ZaloCallbackRequest;
@@ -88,7 +89,7 @@ public class ZaloPayService {
         orderParams.put("embed_data", new JSONObject(embed_data).toString());
         orderParams.put("phone", order.getPhone());
 //        orderParams.put("address", order.getAddress());
-        String callbackURL = "http://54.252.164.25:8080/shopIoT/api";
+        String callbackURL = "http://localhost:8080/shopIoT/api";
         orderParams.put("callback_url", callbackURL + "/payment/zalo-pay/call-back");
 
         // app_id +”|”+ app_trans_id +”|”+ appuser +”|”+ amount +"|" + app_time +”|”+ embed_data +"|" +item
@@ -179,7 +180,25 @@ public class ZaloPayService {
         if (!checksum.equals(data.get("checksum"))) {
             return false;
         } else {
-            // kiểm tra xem đã nhận được callback hay chưa, nếu chưa thì tiến hành gọi API truy vấn trạng thái thanh toán của đơn hàng để lấy kết quả cuối cùng
+            // kiểm tra xem đã nhận được callback hay chưa,
+            // nếu chưa thì tiến hành gọi API truy vấn trạng thái thanh toán của đơn hàng để lấy kết quả cuối cùng
+            String transactionId = data.get("apptransid");
+            Order order = orderService.getOrderByTransactionId(transactionId)
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+
+            if(!order.isPaymentStatus()){
+                try {
+                    log.info("Truy vấn trạng thái thanh toán hóa đơn {}", transactionId);
+                    JsonNode resultQuery = new ObjectMapper().readTree(checkOrderStatus(transactionId));
+                    int returnCode = resultQuery.get("return_code").asInt();
+
+                    if (returnCode == 1){
+                        orderService.changPaymentStatus(order, true);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
             return true;
         }
     }
